@@ -15,6 +15,7 @@ import re
 import ConfigParser
 import restapi
 import display
+import engine
 import cache
 import logger
 
@@ -24,6 +25,7 @@ l.info("Starting")
 c = cache.cache(l)
 
 disp = display.handler(l,c) 
+engine = engine.Engine(l,c)
 
 def signal_handler(signal, frame):
     global disp
@@ -31,7 +33,8 @@ def signal_handler(signal, frame):
     c.ContinueLoop=0
    # del c
     reactor.stop()
-    time.sleep(2)
+    time.sleep(3)
+    l.info("Waiting for the display to finish")
     disp.ExitText()
 
 signal(SIGINT, signal_handler)
@@ -57,5 +60,5 @@ if __name__ == '__main__':
     lc.start(0.2)
     site = server.Site(restapi.Dispatcher(disp))
     reactor.listenTCP(3000, site)
-    reactor.callInThread(loop,c)
+    reactor.callInThread(engine.loop)
     reactor.run()

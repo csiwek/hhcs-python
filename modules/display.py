@@ -78,9 +78,9 @@ class handler():
 		t = datetime.now()
 		self.tbef = t.strftime("%H:%M:%S")
 		self.textToDisp = ""
-		self.ContinueLoop=1
 		l.info("Display Initialized")	
 		self.l = l
+		self.LoopRunning=1
 
 	def draw_rotated_text(self, image, text, position, angle, font, fill=(255,255,255)):
 		# Get rendered font width and height.
@@ -113,10 +113,12 @@ class handler():
 			self.draw_rotated_text(self.disp.buffer, tnow , (2, 10), 90, self.font, fill=(255,0,0))
 			self.draw.line((20, 1, 20, 320), fill=(255,255,255))
 			n = 0
+			ZoneLine = "Zone %d  %.2f %sC" % ((n), self.cache.Sensor0_temp, u'\u00b0')
+			self.draw_rotated_text(self.disp.buffer, ZoneLine, (30, 200), 90, self.font, fill=(255,255,255))
 			while n < 8:
 				ZoneLine = "Zone %d  %.2f %sC" % ((n+1), random.uniform(19.0,25.0), u'\u00b0')
 				#self.draw_rotated_text(self.disp.buffer, self.textToDisp , (100, 120), 90, self.font, fill=(255,255,0))
-				self.draw_rotated_text(self.disp.buffer, ZoneLine, (30+(n*20), 200), 90, self.font, fill=(255,255,255))
+				self.draw_rotated_text(self.disp.buffer, ZoneLine, (45+(n*20), 200), 90, self.font, fill=(255,255,255))
 				n = n+1
 			self.disp.display()
 			self.disp.clear()
@@ -129,7 +131,7 @@ class handler():
 		self.ExitText()
 
 	def ExitText(self):
-		self.l.info("Exit function Called")
+		self.l.info("Exit function Called ")
 		self.disp.clear()
 		self.draw_rotated_text(self.disp.buffer, 'Goodbye', (80, 20), 90,  ImageFont.truetype('DejaVuSans.ttf', 60), fill=(255,255,255))
 		self.disp.display()
