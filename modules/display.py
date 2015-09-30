@@ -30,14 +30,14 @@ import time
 import psutil
 from datetime import time as TIME
 from datetime import datetime
-
+import random
 
 
 
 class handler():
-	def __init__(self):
+	def __init__(self,l,c):
 
-
+		self.cache=c
 		# Raspberry Pi configuration.
 		#DC = 18
 		#RST = 23
@@ -50,7 +50,7 @@ class handler():
 		SPI_DEVICE = 0
 
 		# Create TFT LCD display class.
-		self.disp = TFT.ILI9341(DC, rst=RST, spi=SPI.SpiDev(SPI_PORT, SPI_DEVICE, max_speed_hz=128000000))
+		self.disp = TFT.ILI9341(DC, rst=RST, spi=SPI.SpiDev(SPI_PORT, SPI_DEVICE, max_speed_hz=64000000))
 
 		# Initialize display.
 		self.disp.begin()
@@ -61,12 +61,12 @@ class handler():
 
 		# Alternatively can clear to a black screen by calling:
 		# disp.clear()
-		draw = self.disp.draw()
+		self.draw = self.disp.draw()
 
 
 		# Load default font.
 		#font = ImageFont.load_default()
-		self.font = ImageFont.truetype('ArialBold.ttf', 20)
+		self.font = ImageFont.truetype('DejaVuSans.ttf', 12)
 		# Alternatively load a TTF font.
 		# Some other nice fonts to try: http://www.dafont.com/bitmap.php
 		#font = ImageFont.truetype('Minecraftia.ttf', 16)
@@ -78,6 +78,9 @@ class handler():
 		t = datetime.now()
 		self.tbef = t.strftime("%H:%M:%S")
 		self.textToDisp = ""
+		self.ContinueLoop=1
+		l.info("Display Initialized")	
+		self.l = l
 
 	def draw_rotated_text(self, image, text, position, angle, font, fill=(255,255,255)):
 		# Get rendered font width and height.
@@ -101,14 +104,31 @@ class handler():
 		t = datetime.now()
 		tnow = t.strftime("%H:%M:%S")
 		if self.tbef != tnow:
-			self.draw_rotated_text(self.disp.buffer, self.textToDisp , (100, 120), 90, self.font, fill=(255,255,0))
-			self.draw_rotated_text(self.disp.buffer, tnow , (130, 120), 90, self.font, fill=(255,0,0))
-			self.draw_rotated_text(self.disp.buffer, 'Hello World!', (150, 120), 90, self.font, fill=(255,255,255))
-			text = "CPU usage: %s Step nr: %d " % (psutil.cpu_percent(), self.A)
-			self.draw_rotated_text(self.disp.buffer, text, (180, 20), 90, self.font, fill=(255,255,255))
+			# Top BAr
+			text = "CPU: %s%%" % (psutil.cpu_percent())
+			self.draw_rotated_text(self.disp.buffer, text, (2, 240), 90, self.font, fill=(255,255,255))
+			self.draw_rotated_text(self.disp.buffer, 'Welcome to HHCS', (2, 100), 90, self.font, fill=(255,255,255))
+			self.draw_rotated_text(self.disp.buffer, tnow , (2, 10), 90, self.font, fill=(255,0,0))
+			self.draw.line((20, 1, 20, 320), fill=(255,255,255))
+			n = 0
+			while n < 8:
+				ZoneLine = "Zone %d  %.2f %sC" % ((n+1), random.uniform(19.0,25.0), u'\u00b0')
+				#self.draw_rotated_text(self.disp.buffer, self.textToDisp , (100, 120), 90, self.font, fill=(255,255,0))
+				self.draw_rotated_text(self.disp.buffer, ZoneLine, (30+(n*20), 200), 90, self.font, fill=(255,255,255))
+				n = n+1
 			self.disp.display()
 			self.disp.clear()
 			self.tbef = tnow
 		self.A=self.A+1
 		return 0
 
+	def __del__(self):
+		self.l.info("Destructor called")
+		self.ExitText()
+
+	def ExitText(self):
+		self.l.info("Exit function Called")
+		self.disp.clear()
+		self.draw_rotated_text(self.disp.buffer, 'Goodbye', (2, 100), 90, self.font, fill=(255,255,255))
+		self.disp.display()
+	
