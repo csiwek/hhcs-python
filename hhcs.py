@@ -31,10 +31,11 @@ def signal_handler(signal, frame):
     c.ContinueLoop=0
    # del c
     reactor.stop()
-    time.sleep(0.5)
+    time.sleep(2)
     disp.ExitText()
 
 signal(SIGINT, signal_handler)
+signal(SIGTERM, signal_handler)
 
 
 

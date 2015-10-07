@@ -66,7 +66,7 @@ class handler():
 
 		# Load default font.
 		#font = ImageFont.load_default()
-		self.font = ImageFont.truetype('DejaVuSans.ttf', 12)
+		self.font = ImageFont.truetype('ArialBold.ttf', 14)
 		# Alternatively load a TTF font.
 		# Some other nice fonts to try: http://www.dafont.com/bitmap.php
 		#font = ImageFont.truetype('Minecraftia.ttf', 16)
@@ -103,6 +103,8 @@ class handler():
 	def generate(self):
 		t = datetime.now()
 		tnow = t.strftime("%H:%M:%S")
+		if not self.cache.ContinueLoop:
+			return 0
 		if self.tbef != tnow:
 			# Top BAr
 			text = "CPU: %s%%" % (psutil.cpu_percent())
@@ -129,6 +131,6 @@ class handler():
 	def ExitText(self):
 		self.l.info("Exit function Called")
 		self.disp.clear()
-		self.draw_rotated_text(self.disp.buffer, 'Goodbye', (2, 100), 90, self.font, fill=(255,255,255))
+		self.draw_rotated_text(self.disp.buffer, 'Goodbye', (80, 20), 90,  ImageFont.truetype('DejaVuSans.ttf', 60), fill=(255,255,255))
 		self.disp.display()
 	
