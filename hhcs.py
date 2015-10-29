@@ -18,13 +18,17 @@ import display
 import engine
 import cache
 import logger
+import ConfigParser
+
 
 log = logger.Logger("hhcs")
 l = log.get_logger("hhcs") 
 l.info("Starting")
 c = cache.cache(l)
+config = ConfigParser.RawConfigParser()
+config.read('hhcs.cfg')
 
-disp = display.handler(l,c) 
+disp = display.handler(l,c,config) 
 engine = engine.Engine(l,c)
 
 def signal_handler(signal, frame):
@@ -59,6 +63,6 @@ if __name__ == '__main__':
     lc = task.LoopingCall(disp.generate)
     lc.start(0.2)
     site = server.Site(restapi.Dispatcher(disp))
-    reactor.listenTCP(3000, site)
+    reactor.listenTCP(3001, site)
     reactor.callInThread(engine.loop)
     reactor.run()

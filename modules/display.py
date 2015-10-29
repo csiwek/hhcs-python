@@ -35,9 +35,12 @@ import random
 
 
 class handler():
-	def __init__(self,l,c):
-
+	def __init__(self,l,c, config):
 		self.cache=c
+		self.config = config
+		if int(config.get('display', 'enabled')) != 1:
+			return
+
 		# Raspberry Pi configuration.
 		#DC = 18
 		#RST = 23
@@ -83,6 +86,9 @@ class handler():
 		self.LoopRunning=1
 
 	def draw_rotated_text(self, image, text, position, angle, font, fill=(255,255,255)):
+		if int(self.config.get('display', 'enabled')) != 1:
+			return
+
 		# Get rendered font width and height.
 		draw = ImageDraw.Draw(image)
 		width, height = draw.textsize(text, font=font)
@@ -101,6 +107,8 @@ class handler():
 
 # Write two lines of white text on the buffer, rotated 90 degrees counter clockwise.
 	def generate(self):
+		if int(self.config.get('display', 'enabled')) != 1:
+			return
 		t = datetime.now()
 		tnow = t.strftime("%H:%M:%S")
 		if not self.cache.ContinueLoop:
@@ -127,10 +135,14 @@ class handler():
 		return 0
 
 	def __del__(self):
+		if int(self.config.get('display', 'enabled')) != 1:
+			return
 		self.l.info("Destructor called")
 		self.ExitText()
 
 	def ExitText(self):
+		if int(self.config.get('display', 'enabled')) != 1:
+			return
 		self.l.info("Exit function Called ")
 		self.disp.clear()
 		self.draw_rotated_text(self.disp.buffer, 'Goodbye', (80, 20), 90,  ImageFont.truetype('DejaVuSans.ttf', 60), fill=(255,255,255))
