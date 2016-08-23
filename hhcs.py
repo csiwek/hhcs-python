@@ -4,7 +4,8 @@ import sys, os, string
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/modules/')
 from twisted.internet import reactor
 from twisted.python import threadable, log as twlog
-from twisted.web import server, resource
+from twisted.web import server, resource, static
+#from twisted.web.resource import Resource
 from twisted.internet import task, defer
 import urllib
 import time
@@ -14,6 +15,7 @@ import pprint
 import re
 import ConfigParser
 import restapi
+import web
 import display
 import engine
 import cache
@@ -29,7 +31,7 @@ config = ConfigParser.RawConfigParser()
 config.read('hhcs.cfg')
 
 disp = display.handler(l,c,config) 
-engine = engine.Engine(l,c)
+engine = engine.Engine(l,c,config)
 
 def signal_handler(signal, frame):
     global disp
@@ -37,13 +39,12 @@ def signal_handler(signal, frame):
     c.ContinueLoop=0
    # del c
     reactor.stop()
-    time.sleep(3)
+#    time.sleep(3)
     l.info("Waiting for the display to finish")
     disp.ExitText()
 
 signal(SIGINT, signal_handler)
 signal(SIGTERM, signal_handler)
-
 
 
 def serve():
@@ -62,7 +63,16 @@ if __name__ == '__main__':
 #    disp = display.handler(c) 
     lc = task.LoopingCall(disp.generate)
     lc.start(0.2)
-    site = server.Site(restapi.Dispatcher(disp))
-    reactor.listenTCP(3001, site)
+    
+    root = web.Dispatcher(l)
+    root.putChild("css", static.File("./template/css"))
+    root.putChild("js", static.File("./template/js"))
+    root.putChild("img", static.File("./template/img"))
+ #   root.putChild("", web.Dispatcher())
+    #root.processors = {'.html': web.Dispatcher()}
+    restServer = server.Site(restapi.Dispatcher(disp))
+    webServer = server.Site(root)
+    reactor.listenTCP(3001, restServer)
+    reactor.listenTCP(81, webServer)
     reactor.callInThread(engine.loop)
     reactor.run()
