@@ -64,7 +64,7 @@ if __name__ == '__main__':
     lc = task.LoopingCall(disp.generate)
     lc.start(0.2)
     
-    root = web.Dispatcher(l)
+    root = web.Dispatcher(l, config, c)
     root.putChild("css", static.File("./template/css"))
     root.putChild("js", static.File("./template/js"))
     root.putChild("img", static.File("./template/img"))

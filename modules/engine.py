@@ -2,6 +2,8 @@
 import Adafruit_BBIO.GPIO as GPIO
 import time
 import sys, os, string
+import pprint
+
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/modules/')
 import pyownet.protocol
 class Engine():
@@ -67,6 +69,7 @@ class Engine():
 				print p
 			except:
 				self.l.info("No Sensor was found")
+				self.l.info("Dict: " + pprint.pformat(self.c.Dict))
 			time.sleep(self.config.getint('engine', 'loop_interval'))
 	def __del__(self):
 		self.l.info("Cleaning up Engine")

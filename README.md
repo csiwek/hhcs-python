@@ -1,7 +1,7 @@
 # hhcs-python
 
 
-apt-get install python-twisted python-imaging python-psutil owfs
+apt-get install python-twisted python-imaging python-psutil owfs python-tornado
 
 pip install Adafruit_BBIO
 
