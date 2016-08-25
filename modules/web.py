@@ -23,8 +23,6 @@ class Dispatcher(resource.Resource):
     def getChild(self, name, request):
 	return Process(name, self.log, self.config, self.cache)
 
-class ShortSession(Session):
-    sessionTimeout = 5
 
 
 class SessionManager:
@@ -72,14 +70,14 @@ class Process(resource.Resource):
 	if self.name == "login.html":
 		#registerAdapter(Session)
 		#request.getSession().expire()
-		
+		Session.sessionTimeout 	= 3600
 		username = cgi.escape(request.args["username"][0])
 		password = cgi.escape(request.args["password"][0])
 		self.log.info("User " + username + " entered")
 		if self.config.get('web', 'admin_username') == username  and self.config.get('web', 'admin_password') == password:
 			self.log.info(" =================   User " + username + " Authenticated")
-			ses = request.getSession().uid
-			self.cache.setValue(ses + "_user", username)
+			ses = request.getSession()
+			self.cache.setValue(ses.uid + "_user", username)
 			request.redirect("index.html")
 		else:
 			self.log.info("User " + username + " NOT  Authenticated")

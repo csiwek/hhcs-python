@@ -68,6 +68,7 @@ if __name__ == '__main__':
     root.putChild("css", static.File("./template/css"))
     root.putChild("js", static.File("./template/js"))
     root.putChild("img", static.File("./template/img"))
+    root.putChild("font", static.File("./template/font"))
  #   root.putChild("", web.Dispatcher())
     #root.processors = {'.html': web.Dispatcher()}
     restServer = server.Site(restapi.Dispatcher(disp))
