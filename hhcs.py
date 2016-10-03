@@ -23,6 +23,9 @@ import logger
 import ConfigParser
 
 
+
+
+
 log = logger.Logger("hhcs")
 l = log.get_logger("hhcs") 
 l.info("Starting")
@@ -49,13 +52,6 @@ signal(SIGTERM, signal_handler)
 
 def serve():
 	return "OK"
-
-
-
-def loop(c):
-	while c.ContinueLoop:
-		l.debug("tick %d\n" % c.ContinueLoop)
-		time.sleep(1)
 
 
 if __name__ == '__main__':
