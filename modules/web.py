@@ -7,7 +7,7 @@ from twisted.web.server import Session
 from twisted.python.components import registerAdapter
 import cgi
 import pprint
-from twisted.web.error import NoResource
+#from twisted.web.error import NoResource
 
 #from concurrent.futures.thread import ThreadPoolExecutor
 import pprint
