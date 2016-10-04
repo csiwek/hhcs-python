@@ -10,10 +10,16 @@ this is zones template
 			<option value="disabled">Disabled</option>
 		</select>
 		</p>
-		<p>Zone sensorr: <select name="sensor">
-			<option value="sens1">Sensor 1</option>
-			<option value="sens2">Sensor 2</option>
-			<option value="sens3">Sensor 3</option>
+		<p>Zone sensor: <select name="sensor">
+			{% for sensor in sensors %}
+          			<option value="{{ escape(sensor)}}">{{ escape(sensor)}}</option>
+        		{% end %}
+		</select>
+		</p>
+		<p>Zone relay: <select name="relay">
+			{% for relay in relays %}
+          			<option value="{{ escape(relay)}}">{{ escape(relay)}}</option>
+        		{% end %}
 		</select>
 		</p>
 	

@@ -38,7 +38,7 @@ engine = engine.Engine(l,c,config)
 
 def signal_handler(signal, frame):
     global disp
-    l.info("terminating hhck")
+    l.info("terminating hhcs")
     c.ContinueLoop=0
    # del c
     reactor.stop()

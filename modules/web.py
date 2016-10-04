@@ -141,7 +141,10 @@ class ProcessZones(resource.Resource):
 	for section in self.config.sections():
 		if section[:5] == "zone_":
 			self.log.info("found zone %s " % section[5:])
-	return loader.load("zones.html").generate()	
+	return loader.load("zones.html").generate(
+				sensors=self.config.options('sensors'),
+				relays=self.config.options('gpio')
+				)	
 
 
     def render_POST(self, request):
@@ -149,9 +152,18 @@ class ProcessZones(resource.Resource):
 	self.log.info("Serving POST: %s " % self.name)
 	#Session.sessionTimeout 	= 3600
 	zoneName = cgi.escape(request.args["zonename"][0])
+	zoneTemp = float(cgi.escape(request.args["zonetemp"][0]))
+	zoneHist = float(cgi.escape(request.args["zonehist"][0]))
+	zoneSensor = cgi.escape(request.args["sensor"][0])
+	zoneRelay = cgi.escape(request.args["relay"][0])
 	self.log.info("Creating Zone " + zoneName)
 	if len(zoneName) > 2:
-		self.config.add_section("zone_" + zoneName)
+		section = "zone_" + zoneName
+		self.config.add_section(section)
+		self.config.set(section, "temperature", zoneTemp)
+		self.config.set(section, "relay", zoneRelay)
+		self.config.set(section, "sensor", zoneSensor)
+		self.config.set(section, "hysteresis", zoneHist)
 		with open('hhcs1.cfg', 'wb') as configfile:
 			self.config.write(configfile)	
 		self.log.info("Zone Created: " + zoneName)
