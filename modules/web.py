@@ -14,6 +14,7 @@ import pprint
 from tornado import template
 import uuid
 import time
+import re
 
 class Dispatcher(resource.Resource):
     def __init__(self, log, config, cache):
@@ -27,6 +28,8 @@ class Dispatcher(resource.Resource):
 		return ProcessIndex(name, self.log, self.config, self.cache)
 	elif request.path=="/zones" or request.path=="/zones/add":
 		return ProcessZones(name, self.log, self.config, self.cache)
+	elif re.match(r"^/zones/delete/(.*)$", request.path, flags=0):
+		return ProcessZoneDelete(name, self.log, self.config, self.cache)
 	elif request.path=="/login":
 		return ProcessLogin(name, self.log, self.config, self.cache)
 	else:
@@ -138,12 +141,20 @@ class ProcessZones(resource.Resource):
 	self.log.info("Serving: %s " % self.name)
 	self.log.info("reuest: %s " % pprint.pformat(request.getClientIP()))
 	loader = template.Loader("./" + self.config.get('web', 'template_name'))
+	zoneslist = {}
 	for section in self.config.sections():
 		if section[:5] == "zone_":
 			self.log.info("found zone %s " % section[5:])
+			itemsDict = {}
+			items = self.config.items(section)
+			for item in items:
+				itemsDict[item[0]] = item[1]
+			zoneslist[section[5:]] = itemsDict
+	pprint.pprint(zoneslist)
 	return loader.load("zones.html").generate(
 				sensors=self.config.options('sensors'),
-				relays=self.config.options('gpio')
+				relays=self.config.options('gpio'),
+				zones=zoneslist
 				)	
 
 
@@ -164,7 +175,7 @@ class ProcessZones(resource.Resource):
 		self.config.set(section, "relay", zoneRelay)
 		self.config.set(section, "sensor", zoneSensor)
 		self.config.set(section, "hysteresis", zoneHist)
-		with open('hhcs1.cfg', 'wb') as configfile:
+		with open('hhcs.cfg', 'wb') as configfile:
 			self.config.write(configfile)	
 		self.log.info("Zone Created: " + zoneName)
 	request.redirect("/zones")
@@ -173,6 +184,26 @@ class ProcessZones(resource.Resource):
 
 
 
+
+class ProcessZoneDelete(resource.Resource):
+    isLeaf=True
+    def __init__(self, name, log, config, cache):
+       	resource.Resource.__init__(self)
+	self.name = name
+	self.log = log
+	self.config = config
+	self.cache = cache
+
+    def render_GET(self, request):
+	self.log.info("Serving: %s " % self.name)
+	self.log.info("reuest: %s " % pprint.pformat(request.getClientIP()))
+	m = re.match(r"^/zones/delete/(.*)$", request.path, flags=0)
+	if m:
+		zone = "zone_" + m.group(1)
+		self.config.remove_section(zone)
+	request.redirect("/zones")
+	request.finish()
+	return server.NOT_DONE_YET
 
 
 

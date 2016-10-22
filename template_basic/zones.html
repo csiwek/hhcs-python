@@ -1,6 +1,10 @@
 <html>
 
-this is zones template
+<table>
+{% for zonename, zonevalues in zones.iteritems() %}
+	<tr><td>{{ escape(zonename)}}</td><td>{{zonevalues['temperature']}}</td><td><a href="/zones/edit/{{ escape(zonename)}}">edit</a></td><td><a href="/zones/delete/{{ escape(zonename)}}">delete</a></td></tr>
+{% end %}
+</table>
 	<form method="POST" action="/zones/add">
 		<p>Zone name: <input name="zonename" type="text"/></p>
 		<p>Zone temperature: <input name="zonetemp" type="text"/></p>
