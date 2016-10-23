@@ -44,6 +44,14 @@ class Engine():
 					zone_sensor_name = self.config.get(section, 'sensor')
 					zone_sensor = self.config.get('sensors', zone_sensor_name)
 					zone_relay_name = self.config.get(section, 'relay')
+					zone_enabled = self.config.getboolean(section, 'enabled')
+					zone_direction = self.c.getValue(zone + "_zone_direction")
+					if not zone_enabled:
+						if zone_direction == "UP":
+							self.l.info("Zone '%s' is disabled but it is currently in direction 'UP'. Disabling heating for this zone" % zone)
+							self.c.setValue(zone + "_zone_direction", "DOWN")
+							self.turn_relay(zone_relay_name, 0)
+					
 	
 					try:
 						self.l.debug("Trying to read sensor: "  + zone_sensor_name)

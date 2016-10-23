@@ -6,28 +6,29 @@
 {% end %}
 </table>
 	<form method="POST" action="/zones/add">
-		<p>Zone name: <input name="zonename" type="text"/></p>
-		<p>Zone temperature: <input name="zonetemp" type="text"/></p>
-		<p>Zone histeresis: <input name="zonehist" type="text"/></p>
-		<p>Zone enabled: <select name="enabled">
-			<option value="enabled">Enabled</option>
-			<option value="disabled">Disabled</option>
+		<table>
+		<tr><td>Zone name:</td><td> <input name="zonename" type="text"/></td></tr>
+		<tr><td>Zone temperature:</td><td> <input name="zonetemp" type="text"/></td></tr>
+		<tr><td>Zone histeresis:</td><td> <input name="zonehist" type="text"/></td></tr>
+		<tr><td>Zone enabled:</td><td> <select name="enabled">
+			<option value="1">Enabled</option>
+			<option value="0">Disabled</option>
 		</select>
-		</p>
-		<p>Zone sensor: <select name="sensor">
+		</td></tr>
+		<tr><td>Zone sensor:</td><td> <select name="sensor">
 			{% for sensor in sensors %}
           			<option value="{{ escape(sensor)}}">{{ escape(sensor)}}</option>
         		{% end %}
 		</select>
-		</p>
-		<p>Zone relay: <select name="relay">
+		</td></tr>
+		<tr><td>Zone relay:</td><td> <select name="relay">
 			{% for relay in relays %}
           			<option value="{{ escape(relay)}}">{{ escape(relay)}}</option>
         		{% end %}
 		</select>
-		</p>
-	
-		<p><input type="submit" value="Create"/></p>
+		</td></tr>
+		
+		<tr><td><input type="submit" value="Create"/></td></tr>
 	</form>
 
 </html>

@@ -30,6 +30,8 @@ class Dispatcher(resource.Resource):
 		return ProcessZones(name, self.log, self.config, self.cache)
 	elif re.match(r"^/zones/delete/(.*)$", request.path, flags=0):
 		return ProcessZoneDelete(name, self.log, self.config, self.cache)
+	elif re.match(r"^/zones/edit/(.*)$", request.path, flags=0):
+		return ProcessZoneEdit(name, self.log, self.config, self.cache)
 	elif request.path=="/login":
 		return ProcessLogin(name, self.log, self.config, self.cache)
 	else:
@@ -167,17 +169,98 @@ class ProcessZones(resource.Resource):
 	zoneHist = float(cgi.escape(request.args["zonehist"][0]))
 	zoneSensor = cgi.escape(request.args["sensor"][0])
 	zoneRelay = cgi.escape(request.args["relay"][0])
+	zoneEnabled = cgi.escape(request.args["enabled"][0])
 	self.log.info("Creating Zone " + zoneName)
 	if len(zoneName) > 2:
-		section = "zone_" + zoneName
+		import uuid
+		zoneId = str(uuid.uuid4())
+		section = "zone_" + zoneId
 		self.config.add_section(section)
+		self.config.set(section, "temperature", zoneTemp)
+		self.config.set(section, "name", zoneName)
+		self.config.set(section, "relay", zoneRelay)
+		self.config.set(section, "sensor", zoneSensor)
+		self.config.set(section, "hysteresis", zoneHist)
+		self.config.set(section, "enabled", zoneEnabled)
+		with open('hhcs.cfg', 'wb') as configfile:
+			self.config.write(configfile)	
+		self.log.info("Zone Created: " + zoneName)
+	request.redirect("/zones")
+	request.finish()
+	return server.NOT_DONE_YET
+
+
+
+
+class ProcessZoneEdit(resource.Resource):
+    isLeaf=True
+    def __init__(self, name, log, config, cache):
+       	resource.Resource.__init__(self)
+	self.name = name
+	self.log = log
+	self.config = config
+	self.cache = cache
+
+    def render_GET(self, request):
+	self.log.info("Serving: %s " % self.name)
+	self.log.info("reuest: %s " % pprint.pformat(request.getClientIP()))
+	m = re.match(r"^/zones/edit/(.*)$", request.path, flags=0)
+	loader = template.Loader("./" + self.config.get('web', 'template_name'))
+	if m:
+		zone_name= m.group(1)
+		section = "zone_" + zone_name
+		self.log.info("Getting information about zone: %s " % section)
+		name = self.config.get(section, 'name')
+		zone_temperature = float(self.config.get(section, 'temperature'))
+		zone_hysteresis = float(self.config.get(section, 'hysteresis'))
+		zone_sensor_name = self.config.get(section, 'sensor')
+		zone_enabled = self.config.getboolean(section, 'enabled')
+		zone_sensor = self.config.get('sensors', zone_sensor_name)
+		zone_relay_name = self.config.get(section, 'relay')
+		return loader.load("zone_edit.html").generate(
+				name=name,
+				zonename=zone_name,
+				zone_enabled=zone_enabled,	
+				zone_temperature=str(zone_temperature),
+				zone_hysteresis=str(zone_hysteresis),
+				zone_sensor_name=str(zone_sensor_name),
+				zone_sensor=zone_sensor,
+				zone_relay_name=zone_relay_name,
+				sensors=self.config.options('sensors'),
+				relays=self.config.options('gpio')
+				)	
+
+
+	else:
+
+		request.redirect("/zones")
+		request.finish()
+		return server.NOT_DONE_YET
+
+    def render_POST(self, request):
+	self.session = SessionManager(request, self.log)
+	self.log.info("Serving POST: %s " % self.name)
+	#Session.sessionTimeout 	= 3600
+	m = re.match(r"^/zones/edit/(.*)$", request.path, flags=0)
+	zoneId= m.group(1)
+	zoneTemp = float(cgi.escape(request.args["zonetemp"][0]))
+	zoneName = cgi.escape(request.args["zonename"][0])
+	zoneHist = float(cgi.escape(request.args["zonehist"][0]))
+	zoneSensor = cgi.escape(request.args["sensor"][0])
+	zoneRelay = cgi.escape(request.args["relay"][0])
+	zoneEnabled = cgi.escape(request.args["enabled"][0])
+	self.log.info("Updating Zone " + zoneName)
+	if len(zoneName) > 2:
+		section = "zone_" + zoneId
+		self.config.set(section, "name", zoneName)
 		self.config.set(section, "temperature", zoneTemp)
 		self.config.set(section, "relay", zoneRelay)
 		self.config.set(section, "sensor", zoneSensor)
 		self.config.set(section, "hysteresis", zoneHist)
+		self.config.set(section, "enabled", zoneEnabled)
 		with open('hhcs.cfg', 'wb') as configfile:
 			self.config.write(configfile)	
-		self.log.info("Zone Created: " + zoneName)
+		self.log.info("Zone Created: " + zoneId) 
 	request.redirect("/zones")
 	request.finish()
 	return server.NOT_DONE_YET
@@ -204,6 +287,7 @@ class ProcessZoneDelete(resource.Resource):
 	request.redirect("/zones")
 	request.finish()
 	return server.NOT_DONE_YET
+
 
 
 
