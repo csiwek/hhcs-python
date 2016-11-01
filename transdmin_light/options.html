@@ -23,10 +23,10 @@
         
         <!-- You can name the links with lowercase, they will be transformed to uppercase by CSS, we prefered to name them with uppercase to have the same effect with disabled stylesheet -->
         <ul id="mainNav">
-        	<li><a href="/zones" class="active">ZONES</a></li> <!-- Use the "active" class for the active menu item  -->
+        	<li><a href="/zones">ZONES</a></li> <!-- Use the "active" class for the active menu item  -->
         	<li><a href="/relays">RELAYS</a></li>
         	<li><a href="/sensors">SENSORS</a></li>
-        	<li><a href="/options">OPTIONS</a></li>
+        	<li><a href="/options" class="active">OPTIONS</a></li>
         	<li class="logout"><a href="/login">LOGOUT</a></li>
         </ul>
         <!-- // #end mainNav -->
@@ -35,51 +35,78 @@
 			<div id="container">
         		<div id="sidebar">
                 	<ul class="sideNav">
-                    	<li><a href="#" class="active">All Zones</a></li>
-                    	<li><a href="#">Add new Zone</a></li>
+                    	<li><a href="#" class="active">Options</a></li>
                     </ul>
                     <!-- // .sideNav -->
                 </div>    
                 <!-- // #sidebar -->
                 
                 <!-- h2 stays for breadcrumbs -->
-                <h2><a href="#">Zones</a> &raquo; <a href="#" class="active">Edit Zone</a></h2>
+                <h2><a href="#">Options</a> &raquo; <a href="#" class="active">Edit Options</a></h2>
                 
                 <div id="main">
-                	<form method="POST" action="/zones/edit/{{ escape(zonename)}}" class="jNice">
+                	<form method="POST" action="/options" class="jNice">
 					<h3>Edit Zone</h3>
                     	<fieldset>
-                        	<p><label>Zone name:</label><input type="text" name="zonename" value="{{ escape(name)}}" class="text-long" /></p>
-                        	<p><label>Temperature:</label><input type="text" name="zonetemp" value="{{ escape(zone_temperature)}}" class="text-short" /></p>
-                        	<p><label>Histeresis:</label><input type="text" name="zonehist" value="{{ escape(zone_hysteresis)}}" class="text-short" /></p>
-                            <p><label>Enabled </label>
-			     <select name="enabled">
-				{% if zone_enabled %}
+			  <p><label>Pump control </label>
+			     <select name="pump_enabled">
+				{% if pump_enabled %}
 					<option name="Enabled" value="1" selected>Enabled</option>
 					<option name="Disabled" value="0">Disabled</option>
 				{% else %}
 					<option name="Enabled" value="1">Enabled</option>
 					<option name="Dissbled" value="0" selected>Disabled</option>
 				{% end %}
-			    </select>
+			    </select></p>
 
-                            <p><label>Sensor </label>
-                            <select name="sensor">
-				{% for sensor_id, sensor_name in sensors.iteritems() %}
+
+                        	<p><label>Pump Delay (s):</label><input type="text" name="pump_delay" value="{{ escape(pump_delay)}}" class="text-short" /></p>
+
+                            <p><label>Return flow sensor </label>
+                            <select name="return_sensor">
+                        	{% for sensor_id, sensor_name in sensors.iteritems() %}
           				<option value="{{ escape(sensor_id)}}">{{ escape(sensor_name)}}</option>
         			{% end %}
                             </select></p>
 
-                            <p><label>Relay </label>
-				<select name="relay">
+
+			  <p><label>Comfort Floor </label>
+			     <select name="comfort_floor_enabled">
+				{% if comfort_floor_enabled %}
+					<option name="Enabled" value="1" selected>Enabled</option>
+					<option name="Disabled" value="0">Disabled</option>
+				{% else %}
+					<option name="Enabled" value="1">Enabled</option>
+					<option name="Dissbled" value="0" selected>Disabled</option>
+				{% end %}
+			    </select></p>
+
+
+                        	<p><label>Comfort floor flow temperature (&deg;C) :</label><input type="text" name="comfort_floor_temp" value="{{ escape(comfort_floor_temp)}}" class="text-short" /></p>
+                        	<p><label>Min flow temperature (&deg;C) :</label><input type="text" name="min_flow_temp" value="{{ escape(min_flow_temp)}}" class="text-short" /></p>
+                        	<p><label>Max flow temperature (&deg;C) :</label><input type="text" name="max_flow_temp" value="{{ escape(max_flow_temp)}}" class="text-short" /></p>
+
+                            <p><label>Pump Relay </label>
+				<select name="pump_relay">
 				{% for relay in relays %}
-					{% if relay == zone_relay_name %}
+					{% if relay == pump_relay_name %}
 						<option value="{{ escape(relay)}}" selected>{{ escape(relay)}}</option>
 					{% else %}
 						<option value="{{ escape(relay)}}">{{ escape(relay)}}</option>
 					{% end %}
 				{% end %}
 				</select></p>
+	                     <p><label>Boiler Relay </label>
+				<select name="boiler_relay">
+				{% for relay in relays %}
+					{% if relay == boiler_relay_name %}
+						<option value="{{ escape(relay)}}" selected>{{ escape(relay)}}</option>
+					{% else %}
+						<option value="{{ escape(relay)}}">{{ escape(relay)}}</option>
+					{% end %}
+				{% end %}
+				</select></p>
+        
                             <input type="submit" value="Save" />
                         </fieldset>
                     </form>

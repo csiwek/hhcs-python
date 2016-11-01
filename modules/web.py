@@ -12,9 +12,11 @@ import pprint
 #from concurrent.futures.thread import ThreadPoolExecutor
 import pprint
 from tornado import template
+from tornado import escape
 import uuid
 import time
 import re
+import helper
 
 class Dispatcher(resource.Resource):
     def __init__(self, log, config, cache):
@@ -28,12 +30,23 @@ class Dispatcher(resource.Resource):
 		return ProcessIndex(name, self.log, self.config, self.cache)
 	elif request.path=="/zones" or request.path=="/zones/add":
 		return ProcessZones(name, self.log, self.config, self.cache)
+	elif request.path=="/sensors":
+		return ProcessSensors(name, self.log, self.config, self.cache)
+	elif re.match(r"^/sensors/assign/(.*)$", request.path, flags=0):
+		return ProcessSensors(name, self.log, self.config, self.cache)
+	elif re.match(r"^/sensors/assign$", request.path, flags=0):
+		return ProcessSensors(name, self.log, self.config, self.cache)
+	elif re.match(r"^/sensors/delete/(.*)$", request.path, flags=0):
+		return ProcessSensors(name, self.log, self.config, self.cache)
 	elif re.match(r"^/zones/delete/(.*)$", request.path, flags=0):
 		return ProcessZoneDelete(name, self.log, self.config, self.cache)
 	elif re.match(r"^/zones/edit/(.*)$", request.path, flags=0):
 		return ProcessZoneEdit(name, self.log, self.config, self.cache)
 	elif request.path=="/login":
 		return ProcessLogin(name, self.log, self.config, self.cache)
+	elif request.path=="/options":
+		return ProcessOptions(name, self.log, self.config, self.cache)
+	
 	else:
 		return ProcessError(request.path, self.log, self.config, self.cache)
 		#return NoResource("oops...")
@@ -94,7 +107,7 @@ class ProcessLogin(resource.Resource):
 		#ses = request.getSession()
 		ses = self.session.startSession()
 		self.cache.setValue(ses + "_user", username)
-		request.redirect("/")
+		request.redirect("/zones")
 	else:
 		self.log.info("User " + username + " NOT  Authenticated")
 		request.redirect("/login")
@@ -142,7 +155,15 @@ class ProcessZones(resource.Resource):
     def render_GET(self, request):
 	self.log.info("Serving: %s " % self.name)
 	self.log.info("reuest: %s " % pprint.pformat(request.getClientIP()))
+	hlp = helper.Helper(self.log, self.config, self.cache)
 	loader = template.Loader("./" + self.config.get('web', 'template_name'))
+	if request.path=="/zones/add":
+		return loader.load("zone_add.html").generate(
+				sensors=hlp.getSensorsListAvailable(),
+				relays=self.config.options('gpio')
+		)
+
+
 	zoneslist = {}
 	for section in self.config.sections():
 		if section[:5] == "zone_":
@@ -154,7 +175,7 @@ class ProcessZones(resource.Resource):
 			zoneslist[section[5:]] = itemsDict
 	pprint.pprint(zoneslist)
 	return loader.load("zones.html").generate(
-				sensors=self.config.options('sensors'),
+				sensors=hlp.getSensorsListAvailable(),
 				relays=self.config.options('gpio'),
 				zones=zoneslist
 				)	
@@ -203,6 +224,7 @@ class ProcessZoneEdit(resource.Resource):
 
     def render_GET(self, request):
 	self.log.info("Serving: %s " % self.name)
+	hlp = helper.Helper(self.log, self.config, self.cache)
 	self.log.info("reuest: %s " % pprint.pformat(request.getClientIP()))
 	m = re.match(r"^/zones/edit/(.*)$", request.path, flags=0)
 	loader = template.Loader("./" + self.config.get('web', 'template_name'))
@@ -215,7 +237,7 @@ class ProcessZoneEdit(resource.Resource):
 		zone_hysteresis = float(self.config.get(section, 'hysteresis'))
 		zone_sensor_name = self.config.get(section, 'sensor')
 		zone_enabled = self.config.getboolean(section, 'enabled')
-		zone_sensor = self.config.get('sensors', zone_sensor_name)
+		zone_sensor = self.config.get('sensor_'+zone_sensor_name, 'address')
 		zone_relay_name = self.config.get(section, 'relay')
 		return loader.load("zone_edit.html").generate(
 				name=name,
@@ -226,7 +248,7 @@ class ProcessZoneEdit(resource.Resource):
 				zone_sensor_name=str(zone_sensor_name),
 				zone_sensor=zone_sensor,
 				zone_relay_name=zone_relay_name,
-				sensors=self.config.options('sensors'),
+				sensors=hlp.getSensorsListAvailable(),
 				relays=self.config.options('gpio')
 				)	
 
@@ -243,14 +265,20 @@ class ProcessZoneEdit(resource.Resource):
 	#Session.sessionTimeout 	= 3600
 	m = re.match(r"^/zones/edit/(.*)$", request.path, flags=0)
 	zoneId= m.group(1)
-	zoneTemp = float(cgi.escape(request.args["zonetemp"][0]))
-	zoneName = cgi.escape(request.args["zonename"][0])
-	zoneHist = float(cgi.escape(request.args["zonehist"][0]))
-	zoneSensor = cgi.escape(request.args["sensor"][0])
-	zoneRelay = cgi.escape(request.args["relay"][0])
-	zoneEnabled = cgi.escape(request.args["enabled"][0])
+	try:
+		zoneTemp = float(cgi.escape(request.args["zonetemp"][0]))
+		zoneName = cgi.escape(request.args["zonename"][0])
+		zoneHist = float(cgi.escape(request.args["zonehist"][0]))
+		zoneSensor = cgi.escape(request.args["sensor"][0])
+		zoneRelay = cgi.escape(request.args["relay"][0])
+		zoneEnabled = cgi.escape(request.args["enabled"][0])
+	except:
+		request.redirect("/zones/edit/" + zoneId )
+		request.finish()
+		return server.NOT_DONE_YET
+
 	self.log.info("Updating Zone " + zoneName)
-	if len(zoneName) > 2:
+	if len(zoneId) > 2:
 		section = "zone_" + zoneId
 		self.config.set(section, "name", zoneName)
 		self.config.set(section, "temperature", zoneTemp)
@@ -327,6 +355,151 @@ class ProcessIndex(resource.Resource):
 		return loader.load(self.name).generate()
 	else:
 		return loader.load(self.name).generate()
+
+
+
+class ProcessSensors(resource.Resource):
+    isLeaf=True
+    def __init__(self, name, log, config, cache):
+       	resource.Resource.__init__(self)
+	self.name = name
+	self.log = log
+	self.config = config
+	self.cache = cache
+
+    def render_GET(self, request):
+	self.log.info("Serving: %s " % self.name)
+	self.log.info("reuest: %s " % pprint.pformat(request.getClientIP()))
+	m = re.match(r"^/sensors/delete/(.*)$", request.path, flags=0)
+	if m:
+		sensor = "sensor_" + m.group(1)
+		self.log.info("Removing sensor: : %s " % sensor)
+		self.config.remove_section(sensor)
+		request.redirect("/sensors")
+		request.finish()
+		return server.NOT_DONE_YET
+
+	hlp = helper.Helper(self.log, self.config, self.cache)
+	HWsensorslist = hlp.getSensorsListUnassigned()
+
+	loader = template.Loader("./" + self.config.get('web', 'template_name'))
+	m = re.match(r"^/sensors/assign/(.*)$", request.path, flags=0)
+        if m:
+		return loader.load("sensor_add.html").generate(
+				sensors=self.config.options('sensors'),
+				relays=self.config.options('gpio'),
+				address=escape.url_unescape(m.group(1))
+		)
+
+
+	sensorslist = {}
+	for section in self.config.sections():
+		if section[:7] == "sensor_":
+			self.log.info("found sensor %s " % section[7:])
+			itemsDict = {}
+			items = self.config.items(section)
+			for item in items:
+				itemsDict[item[0]] = item[1]
+			sensorslist[section[7:]] = itemsDict
+	return loader.load("sensors.html").generate(
+				relays=self.config.options('gpio'),
+				sensors=HWsensorslist
+				)	
+
+
+    def render_POST(self, request):
+	self.session = SessionManager(request, self.log)
+	self.log.info("Serving POST: %s " % self.name)
+	#Session.sessionTimeout 	= 3600
+
+	if request.path == "/sensors/assign":
+		pprint.pprint(request.args)
+		try:
+			sensorAddress = cgi.escape(request.args["address"][0])
+			sensorName = cgi.escape(request.args["sensname"][0])
+			sensorType = cgi.escape(request.args["sensor_type"][0])
+		except:
+			self.log.error("One of form field was empty 1")
+			request.redirect("/sensors")
+			request.finish()
+			return server.NOT_DONE_YET		
+	
+		if sensorAddress == "" or sensorName == "" or sensorType == "":
+			self.log.error("One of form field was empty 2")
+			request.redirect("/sensors")
+			request.finish()
+			return server.NOT_DONE_YET		
+	
+		import uuid
+                sensorID = str(uuid.uuid4())
+		section = "sensor_" + sensorID
+		self.config.add_section(section)
+		self.config.set(section, "name", sensorName)
+		self.config.set(section, "address", sensorAddress)
+		self.config.set(section, "type", sensorType)
+		with open('hhcs.cfg', 'wb') as configfile:
+			self.config.write(configfile)	
+		self.log.info("Sensor assigned: " + sensorName)
+	request.redirect("/sensors")
+	request.finish()
+	return server.NOT_DONE_YET
+
+class ProcessOptions(resource.Resource):
+    isLeaf=True
+    def __init__(self, name, log, config, cache):
+       	resource.Resource.__init__(self)
+	self.name = name
+	self.log = log
+	self.config = config
+	self.cache = cache
+
+    def render_GET(self, request):
+	self.log.info("Serving: %s " % self.name)
+	self.log.info("reuest: %s " % pprint.pformat(request.getClientIP()))
+	loader = template.Loader("./" + self.config.get('web', 'template_name'))
+	hlp = helper.Helper(self.log, self.config, self.cache)
+
+	options  = hlp.getOptions()
+	pprint.pprint(options)
+	return loader.load("options.html").generate(
+				pump_enabled=options['pump_enabled'],
+				pump_delay=str(options['pump_delay']),
+				return_sensor=options['return_sensor'],
+				comfort_floor_enabled=options['comfort_floor_enabled'],
+				comfort_floor_temp=str(options['comfort_floor_temp']),
+				min_flow_temp=str(options['min_flow_temp']),
+				max_flow_temp=str(options['max_flow_temp']),
+				pump_relay_name=options['pump_relay'],
+				boiler_relay_name=options['boiler_relay'],
+				relays=hlp.getRelaysUnassigned(),
+				sensors=hlp.getSensorsListAvailable()
+				)	
+    
+    def render_POST(self, request):
+	self.session = SessionManager(request, self.log)
+	self.log.info("Serving POST: %s " % self.name)
+	
+	#Session.sessionTimeout 	= 3600
+
+	if request.path == "/options":
+		if not self.config.has_section('options'):
+			self.config.add_section('options')	
+		self.config.set('options', 'pump_enabled',  int(cgi.escape(request.args["pump_enabled"][0]))) 
+		self.config.set('options', 'pump_delay',  cgi.escape(request.args["pump_delay"][0]))
+		self.config.set('options', 'return_sensor',  cgi.escape(request.args["return_sensor"][0]))
+		self.config.set('options', 'comfort_floor_enabled',  int(cgi.escape(request.args["comfort_floor_enabled"][0])))
+		self.config.set('options', 'comfort_floor_temp',  cgi.escape(request.args["comfort_floor_temp"][0]))
+		self.config.set('options', 'min_flow_temp',  cgi.escape(request.args["min_flow_temp"][0]))
+		self.config.set('options', 'max_flow_temp',  cgi.escape(request.args["max_flow_temp"][0]))
+		self.config.set('options', 'pump_relay',  cgi.escape(request.args["pump_relay"][0]))
+		self.config.set('options', 'boiler_relay',  cgi.escape(request.args["boiler_relay"][0]))
+		with open('hhcs.cfg', 'wb') as configfile:
+			self.config.write(configfile)	
+	request.redirect("/zones")
+	request.finish()
+	return server.NOT_DONE_YET
+
+
 
 #    def render(self, request):
 #	self.log.info("Serving: " . self.name)

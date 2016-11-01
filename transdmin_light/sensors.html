@@ -2,30 +2,30 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>Transdmin Light</title>
+<title>HHCS Control Panel</title>
 
 <!-- CSS -->
-<link href="style/css/transdmin.css" rel="stylesheet" type="text/css" media="screen" />
+<link href="/style/css/transdmin.css" rel="stylesheet" type="text/css" media="screen" />
 <!--[if IE 6]><link rel="stylesheet" type="text/css" media="screen" href="style/css/ie6.css" /><![endif]-->
 <!--[if IE 7]><link rel="stylesheet" type="text/css" media="screen" href="style/css/ie7.css" /><![endif]-->
 
 <!-- JavaScripts-->
-<script type="text/javascript" src="style/js/jquery.js"></script>
-<script type="text/javascript" src="style/js/jNice.js"></script>
+<script type="text/javascript" src="/style/js/jquery.js"></script>
+<script type="text/javascript" src="/style/js/jNice.js"></script>
 </head>
 
 <body>
 	<div id="wrapper">
     	<!-- h1 tag stays for the logo, you can use the a tag for linking the index page -->
-    	<h1><a href="#"><span>Transdmin Light</span></a></h1>
+    	<h1><a href="#"><span>HHCS Control Panel</span></a></h1>
         
         <!-- You can name the links with lowercase, they will be transformed to uppercase by CSS, we prefered to name them with uppercase to have the same effect with disabled stylesheet -->
         <ul id="mainNav">
-        	<li><a href="#" class="active">DASHBOARD</a></li> <!-- Use the "active" class for the active menu item  -->
-        	<li><a href="#">ADMINISTRATION</a></li>
-        	<li><a href="#">DESIGN</a></li>
-        	<li><a href="#">OPTION</a></li>
-        	<li class="logout"><a href="#">LOGOUT</a></li>
+        	<li><a href="/zones">ZONES</a></li> <!-- Use the "active" class for the active menu item  -->
+        	<li><a href="/relays">RELAYS</a></li>
+        	<li><a href="/sensors" class="active">SENSORS</a></li>
+        	<li><a href="/options">OPTIONS</a></li>
+        	<li class="logout"><a href="/login">LOGOUT</a></li>
         </ul>
         <!-- // #end mainNav -->
         
@@ -33,28 +33,34 @@
 			<div id="container">
         		<div id="sidebar">
                 	<ul class="sideNav">
-                    	<li><a href="#">Exchange</a></li>
-                    	<li><a href="#" class="active">Print resources</a></li>
-                    	<li><a href="#">Training &amp; Support</a></li>
-                    	<li><a href="#">Books</a></li>
-                    	<li><a href="#">Safari books online</a></li>
-                    	<li><a href="#">Events</a></li>
+                    	<li><a href="#" class="active">All Sensors</a></li>
+                    	<li><a href="/sensors/add">Add new sensor</a></li>
                     </ul>
                     <!-- // .sideNav -->
                 </div>    
                 <!-- // #sidebar -->
                 
                 <!-- h2 stays for breadcrumbs -->
-                <h2><a href="#">Dashboard</a> &raquo; <a href="#" class="active">Print resources</a></h2>
+                <h2><a href="#">Sensors</a> &raquo; <a href="#" class="active">List Sensors</a></h2>
                 
                 <div id="main">
-					<h3>Loginn</h3>
-                    	<fieldset>
-                        	<p><label>Username:</label><input type="text" class="text-medium" /></p>
-                        	<p><label>Password:</label><input type="password" class="text-medium" /></p>
-                            <input type="submit" value="Login" />
-                        </fieldset>
-                    </form>
+
+					<h3>Zones</h3>
+			<form class="jNice">
+                    	<table cellpadding="0" cellspacing="0">
+				<tr><td>Sensor Name</td><td>Address</td><td>Current Temp</td><td class="action">Action</td></tr>
+			{% for sensorname, sensorvalues in sensors.iteritems() %}
+				<tr class="odd"><td>{{sensorvalues['name']}}</td><td>{{sensorname}}</td><td>{{sensorvalues['current_temp']}}</td><td class="action">
+				{% if sensorvalues['name'] == "" %}
+					<a href="/sensors/assign/{{ url_escape(sensorname)}}" class="edit">Assign Name</a>
+				{% else %}
+					<a href="/sensors/delete/{{sensorvalues['sensor_id']}}" class="delete" onclick="return confirm('Are you sure you want to remove this sensor?');">Delete</a>				
+				{% end %}
+				</td></tr>
+			{% end %}
+			</table>	
+			<p></p>
+			</form>
                 </div>
                 <!-- // #main -->
                 

@@ -13,7 +13,7 @@ class Logger():
     def get_logger(self,name):
 	logging.basicConfig()
         logger = logging.getLogger(name)
-	logger.setLevel(logging.INFO)
+	logger.setLevel(logging.DEBUG)
 	logger.info("Logging initialized")
 	fmt = logging.Formatter("%(filename)s:%(lineno)s  %(module)s::%(funcName)5s()  # %(message)s")
 	syslog_handler = logging.handlers.SysLogHandler(address='/dev/log', facility=logging.handlers.SysLogHandler.LOG_INFO)

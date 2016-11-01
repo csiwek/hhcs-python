@@ -3,6 +3,7 @@ import Adafruit_BBIO.GPIO as GPIO
 import time
 import sys, os, string
 import pprint
+import helper
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/modules/')
 import pyownet.protocol
@@ -12,6 +13,7 @@ class Engine():
 		self.l = l
 		self.c = c
 		self.config = config
+		self.hlp = helper.Helper(l,config,c)
 		GPIO.setup(self.config.get('gpio', 'heartbeat_led'), GPIO.OUT)
 		GPIO.setup(self.config.get('gpio', 'relay_1'), GPIO.OUT)
 		GPIO.setup(self.config.get('gpio', 'relay_2'), GPIO.OUT)
@@ -25,7 +27,8 @@ class Engine():
 		for section in config.sections():
 			if section[:5] == "zone_":
 				zone = section[5:]
-				l.info("Setting zone direction to INIT: %s " % zone)
+				zoneInfo = self.hlp.getZoneById(zone)
+				l.info("Setting zone direction to INIT: %s " % zoneInfo['name'])
 				c.setValue(zone + "_zone_direction", "INIT")	
 				
 		l.info("Initialized Engine")
@@ -42,7 +45,7 @@ class Engine():
 					zone_temperature = float(self.config.get(section, 'temperature'))
 					zone_hysteresis = float(self.config.get(section, 'hysteresis'))
 					zone_sensor_name = self.config.get(section, 'sensor')
-					zone_sensor = self.config.get('sensors', zone_sensor_name)
+					zone_sensor = self.config.get('sensor_' + zone_sensor_name, 'address')
 					zone_relay_name = self.config.get(section, 'relay')
 					zone_enabled = self.config.getboolean(section, 'enabled')
 					zone_direction = self.c.getValue(zone + "_zone_direction")
@@ -58,7 +61,7 @@ class Engine():
 						sensor_temperature = float(self.ow.read(zone_sensor + 'temperature').strip())
 						self.l.info("Sensor '"  + zone_sensor_name + "' => '" + zone_sensor + "' temperature %f" % sensor_temperature)	
 					except:
-						self.l.error("Reading sensor has failed : "  + zone_sensor_name)
+						#self.l.error("Reading sensor has failed : "  + zone_sensor_name)
 						continue
 
 					

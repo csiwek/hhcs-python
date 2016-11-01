@@ -35,32 +35,27 @@
 			<div id="container">
         		<div id="sidebar">
                 	<ul class="sideNav">
-                    	<li><a href="#" class="active">All Zones</a></li>
-                    	<li><a href="#">Add new Zone</a></li>
+                    	<li><a href="/zones">All Zones</a></li>
+                    	<li><a href="/zones/add" class="active">Add new Zone</a></li>
                     </ul>
                     <!-- // .sideNav -->
                 </div>    
                 <!-- // #sidebar -->
                 
                 <!-- h2 stays for breadcrumbs -->
-                <h2><a href="#">Zones</a> &raquo; <a href="#" class="active">Edit Zone</a></h2>
+                <h2><a href="#">Zones</a> &raquo; <a href="#" class="active">Add New Zone</a></h2>
                 
                 <div id="main">
-                	<form method="POST" action="/zones/edit/{{ escape(zonename)}}" class="jNice">
-					<h3>Edit Zone</h3>
+                	<form method="POST" action="/zones/add" class="jNice">
+					<h3>New Zone</h3>
                     	<fieldset>
-                        	<p><label>Zone name:</label><input type="text" name="zonename" value="{{ escape(name)}}" class="text-long" /></p>
-                        	<p><label>Temperature:</label><input type="text" name="zonetemp" value="{{ escape(zone_temperature)}}" class="text-short" /></p>
-                        	<p><label>Histeresis:</label><input type="text" name="zonehist" value="{{ escape(zone_hysteresis)}}" class="text-short" /></p>
+                        	<p><label>Zone name:</label><input type="text" name="zonename" value="" class="text-long" /></p>
+                        	<p><label>Temperature:</label><input type="text" name="zonetemp" value="" class="text-short" /></p>
+                        	<p><label>Histeresis:</label><input type="text" name="zonehist" value="" class="text-short" /></p>
                             <p><label>Enabled </label>
 			     <select name="enabled">
-				{% if zone_enabled %}
 					<option name="Enabled" value="1" selected>Enabled</option>
 					<option name="Disabled" value="0">Disabled</option>
-				{% else %}
-					<option name="Enabled" value="1">Enabled</option>
-					<option name="Dissbled" value="0" selected>Disabled</option>
-				{% end %}
 			    </select>
 
                             <p><label>Sensor </label>
@@ -73,14 +68,10 @@
                             <p><label>Relay </label>
 				<select name="relay">
 				{% for relay in relays %}
-					{% if relay == zone_relay_name %}
-						<option value="{{ escape(relay)}}" selected>{{ escape(relay)}}</option>
-					{% else %}
-						<option value="{{ escape(relay)}}">{{ escape(relay)}}</option>
-					{% end %}
+					<option value="{{ escape(relay)}}">{{ escape(relay)}}</option>
 				{% end %}
 				</select></p>
-                            <input type="submit" value="Save" />
+                            <input type="submit" value="Add Zone" />
                         </fieldset>
                     </form>
                 </div>

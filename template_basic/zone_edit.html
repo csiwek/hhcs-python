@@ -1,0 +1,40 @@
+<html>
+	<form method="POST" action="/zones/edit/{{ escape(zonename)}}">
+		<p>Zone name: {{ escape(zonename)}}</p>
+		<p>Zone temperature: <input name="zonetemp" type="text" value="{{ escape(zone_temperature)}}"/></p>
+		<p>Zone histeresis: <input name="zonehist" type="text" value="{{ escape(zone_hysteresis)}}"/></p>
+		<p>Zone enabled: <select name="enabled">
+			{% if zone_enabled %}
+				<option name="Enabled" value="1" selected>Enabled</option>
+				<option name="Disabled" value="0">Disabled</option>
+			{% else %}
+				<option name="Enabled" value="1">Enabled</option>
+				<option name="Dissbled" value="0" selected>Disabled</option>
+			{% end %}
+		</select>
+		</p>
+		<p>Zone sensor: <select name="sensor">
+			{% for sensor in sensors %}
+				{% if sensor == zone_sensor_name %}
+          				<option value="{{ escape(sensor)}}" selected>{{ escape(sensor)}}</option>
+				{% else %}
+          				<option value="{{ escape(sensor)}}">{{ escape(sensor)}}</option>
+				{% end %}	
+        		{% end %}
+		</select>
+		</p>
+		<p>Zone relay: <select name="relay">
+			{% for relay in relays %}
+				{% if relay == zone_relay_name %}
+          				<option value="{{ escape(relay)}}" selected>{{ escape(relay)}}</option>
+				{% else %}
+          				<option value="{{ escape(relay)}}">{{ escape(relay)}}</option>
+				{% end %}
+        		{% end %}
+		</select>
+		</p>
+	
+		<p><input type="submit" value="Update"/></p>
+	</form>
+
+</html>
