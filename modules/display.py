@@ -31,7 +31,7 @@ import psutil
 from datetime import time as TIME
 from datetime import datetime
 import random
-
+import sys
 
 
 class handler():
@@ -53,8 +53,12 @@ class handler():
 		SPI_DEVICE = 0
 
 		# Create TFT LCD display class.
-		self.disp = TFT.ILI9341(DC, rst=RST, spi=SPI.SpiDev(SPI_PORT, SPI_DEVICE, max_speed_hz=64000000))
-
+		try:
+			self.disp = TFT.ILI9341(DC, rst=RST, spi=SPI.SpiDev(SPI_PORT, SPI_DEVICE, max_speed_hz=64000000))
+		except:
+			l.error("No Display found. ")
+			config.set('display', 'enabled',0)
+			sys.exit(0)
 		# Initialize display.
 		self.disp.begin()
 
