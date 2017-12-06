@@ -159,7 +159,7 @@ class ProcessZones(resource.Resource):
 	loader = template.Loader("./" + self.config.get('web', 'template_name'))
 	if request.path=="/zones/add":
 		return loader.load("zone_add.html").generate(
-				sensors=hlp.getSensorsListAvailable(),
+				sensors=hlp.getSensorsListAvailable(''),
 				relays=self.config.options('gpio')
 		)
 
@@ -170,13 +170,14 @@ class ProcessZones(resource.Resource):
 			self.log.info("found zone %s " % section[5:])
 			itemsDict = {}
 			itemsDict["current_temperature"] = self.cache.getValue(section[5:] + "_zone_current_temp") 	
+			itemsDict["current_direction"] = self.cache.getValue(section[5:] + "_zone_direction") 	
 			items = self.config.items(section)
 			for item in items:
 				itemsDict[item[0]] = item[1]
 			zoneslist[section[5:]] = itemsDict
 	pprint.pprint(zoneslist)
 	return loader.load("zones.html").generate(
-				sensors=hlp.getSensorsListAvailable(),
+				sensors=hlp.getSensorsListAvailable(''),
 				relays=self.config.options('gpio'),
 				zones=zoneslist
 				)	
@@ -249,7 +250,7 @@ class ProcessZoneEdit(resource.Resource):
 				zone_sensor_name=str(zone_sensor_name),
 				zone_sensor=zone_sensor,
 				zone_relay_name=zone_relay_name,
-				sensors=hlp.getSensorsListAvailable(),
+				sensors=hlp.getSensorsListAvailable(zone_sensor_name),
 				relays=self.config.options('gpio')
 				)	
 

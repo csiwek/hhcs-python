@@ -18,7 +18,7 @@ class Helper():
 					SensorList[sensorID] = itemsDict["name"]
 		return SensorList	
 
-	def getSensorsListAvailable(self):
+	def getSensorsListAvailable(self, curr_sensor):
 		SensorList = {}
 		for section in self.config.sections():
 			if section[:7] == "sensor_":
@@ -36,7 +36,7 @@ class Helper():
 							for item in items:
 								itemsDict2[item[0]] = item[1]
 							self.log.info("%s ==: %s ? " % (itemsDict2["sensor"], sensorID))
-							if itemsDict2["sensor"] == sensorID:
+							if itemsDict2["sensor"] == sensorID and curr_sensor != sensorID:
 								zoneMatched=1
 								self.log.debug("Sensor already assinged to zone : %s " % itemsDict2["name"])
 								break
