@@ -67,10 +67,9 @@ class Helper():
 		HWsensors = ow.dir()
 		HWsensorslist = {}
 		for HWsensor in HWsensors:
-			print "HW SENSOR: "
 			itemsDict = {}
 			itemsDict["name"] = ""
-			itemsDict["current_temp"] = float(0)
+			itemsDict["current_temp"] = float(ow.read(HWsensor + 'temperature').strip())
 			itemsDict["address"] = ""
 			itemsDict["sensor_id"] = ""
 			HWsensorslist[HWsensor] = itemsDict
@@ -83,7 +82,7 @@ class Helper():
 					for item in items:
 						itemsDict[item[0]] = item[1]
 					if itemsDict["address"] == HWsensor:
-						itemsDict["current_temp"] = float(22)
+						itemsDict["current_temp"] = float(ow.read(HWsensor + 'temperature').strip())
 						itemsDict["sensor_id"] = sensorID
 						print "=================== FOUND SENSOR:  " + HWsensor	
 						HWsensorslist[HWsensor] = itemsDict

@@ -6,6 +6,7 @@ import time
 import threading
 import pprint
 import memcache
+import sys
  
 from twisted.internet import reactor
 class cache():
@@ -16,9 +17,13 @@ class cache():
 		self.defaultExpirytime = 3600.0
 		self.Dict = {}
 		self.l = l
-		self.usemc = True
+		self.usemc = False
 		if self.usemc == True:
-			self.mc = memcache.Client(['127.0.0.1:11211'], debug=0)
+			try:
+				self.mc = memcache.Client(['127.0.0.1:11211'], debug=0)
+			except:
+				self.l.error("Using Memcache but failed to connect to")
+				sys.Exit(1)
 
 	def getValue(self, keyInp):
 		self.l.debug("Cache getting value for key " + keyInp)
@@ -34,6 +39,7 @@ class cache():
 
 
 	def setValue(self, keyInp, value):
+		self.l.debug("Cache setting '" + str(value) + "' value for key " + keyInp)
 		if not self.usemc:
 			self.Dict[keyInp] = {
 				'data': value,

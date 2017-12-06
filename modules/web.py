@@ -169,6 +169,7 @@ class ProcessZones(resource.Resource):
 		if section[:5] == "zone_":
 			self.log.info("found zone %s " % section[5:])
 			itemsDict = {}
+			itemsDict["current_temperature"] = self.cache.getValue(section[5:] + "_zone_current_temp") 	
 			items = self.config.items(section)
 			for item in items:
 				itemsDict[item[0]] = item[1]

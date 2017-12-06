@@ -22,7 +22,7 @@ class Logger():
 	stream_handler = logging.StreamHandler()
 	stream_handler.setFormatter(fmt)
 	logger.addHandler(syslog_handler)
-	logger.addHandler(stream_handler)
+	#logger.addHandler(stream_handler)
 	self.l = logger 
 	return self.l
 '''	 
