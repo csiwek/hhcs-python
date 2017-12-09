@@ -14,7 +14,7 @@ class cache():
 		l.info("Cache initialized")
 		self.ContinueLoop=1
 		self.Sensor0_temp = 0
-		self.defaultExpirytime = 3600.0
+		self.defaultExpirytime = 0
 		self.Dict = {}
 		self.l = l
 		self.usemc = False
@@ -48,8 +48,8 @@ class cache():
 			}
 			#t = threading.Timer(self.defaultExpirytime, self.expiryVars, [keyInp])
 			#t.start()
-			
-			reactor.callLater(self.defaultExpirytime, self.expiryVars , keyInp)
+			if self.defaultExpirytime > 0:	
+				reactor.callLater(self.defaultExpirytime, self.expiryVars , keyInp)
 		else:
 			self.mc.set(keyInp, value, time=self.defaultExpirytime)
 

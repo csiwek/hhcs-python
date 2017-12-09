@@ -207,6 +207,7 @@ class ProcessZones(resource.Resource):
 		self.config.set(section, "enabled", zoneEnabled)
 		with open('hhcs.cfg', 'wb') as configfile:
 			self.config.write(configfile)	
+		self.cache.setValue(zoneId + "_zone_direction", "INIT")
 		self.log.info("Zone Created: " + zoneName)
 	request.redirect("/zones")
 	request.finish()
@@ -474,7 +475,7 @@ class ProcessOptions(resource.Resource):
 				pump_relay_name=options['pump_relay'],
 				boiler_relay_name=options['boiler_relay'],
 				relays=hlp.getRelaysUnassigned(),
-				sensors=hlp.getSensorsListAvailable()
+				sensors=hlp.getSensorsListAvailable('')
 				)	
     
     def render_POST(self, request):

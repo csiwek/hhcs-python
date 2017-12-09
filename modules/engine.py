@@ -36,7 +36,7 @@ class Engine():
 				c.setValue(zone + "_zone_direction", "INIT")	
 				self.c.setValue(zone + "_zone_current_temp", float(0))	
 		l.info("Initialized Engine")
-		#self.test_relays()
+		self.test_relays()
 	
 #	PWM.start("P8_16", 50)
 	def loop(self):
@@ -44,11 +44,11 @@ class Engine():
 		boiler_relay_name = self.config.get('options', 'boiler_relay')
 		pump_enabled = 0
 		pump_relay_name = self.config.get('options', 'pump_relay')
+		active_zone_count = 0
 		while self.c.ContinueLoop:
 			self.l.debug("tick %d\n" % self.c.ContinueLoop)
 			heating_required = False
 			for section in self.config.sections():
-				active_zone_count = 0
 				if section[:5] == "zone_":
 					zone = section[5:]
 					self.l.debug("found zone %s " % zone)
@@ -65,19 +65,19 @@ class Engine():
 							self.l.info("Zone '%s' is disabled but it is currently in direction 'UP'. Disabling heating for this zone" % zone)
 							self.c.setValue(zone + "_zone_direction", "DOWN")
 							self.turn_relay(zone_relay_name, 0)
+							active_zone_count -=1
 					
 	
 					try:
 						self.l.debug("Trying to read sensor: "  + zone_sensor_name)
 						sensor_temperature = float(self.ow.read(zone_sensor + 'temperature').strip())
 						self.c.setValue(zone + "_zone_current_temp", sensor_temperature)
-						self.l.info("Sensor '"  + zone_sensor_name + "' => '" + zone_sensor + "' temperature %f" % sensor_temperature)	
+						self.l.debug("Sensor '"  + zone_sensor_name + "' => '" + zone_sensor + "' temperature %f" % sensor_temperature)	
 					except:
 						self.l.error("Reading sensor has failed : "  + zone_sensor_name)
 						continue
 
 					
-					zone_direction = self.c.getValue(zone + "_zone_direction")
 					self.l.debug("Zone '" + zoneInfo['name']  + "' direction is: "+  str(zone_direction))						
 					if zone_direction == "DOWN":
 						if sensor_temperature <= (zone_temperature - zone_hysteresis/2):
@@ -101,23 +101,26 @@ class Engine():
 						elif sensor_temperature >= (zone_temperature - zone_hysteresis/2):
 							self.l.info("Current direction INIT. Changing Direction to DOWN in zone '"  + zone + "' sensor_temp: %f >=  requested zone_temp %f" % (sensor_temperature, (zone_temperature - zone_hysteresis/2)))	
 							self.c.setValue(zone + "_zone_direction", "DOWN")
-							active_zone_count -=1
+							#active_zone_count -=1
 			if boiler_enabled == 0 and active_zone_count > 0:
-				self.l.debug("Heating requested by " + str(active_zone_count) + " Zones. Enabling boiler")
+				self.l.info("Heating requested by " + str(active_zone_count) + " Zones. Enabling boiler")
 				self.turn_relay(boiler_relay_name, 1)
 				boiler_enabled =1
 			elif boiler_enabled ==1 and active_zone_count ==0:
-				self.l.debug("Heating requested by " + str(active_zone_count) + " Zones. Disabling boiler")
+				self.l.info("Heating requested by " + str(active_zone_count) + " Zones. Disabling boiler")
 				self.turn_relay(boiler_relay_name, 0)
 				boiler_enabled =0
 			# Control pump relay
 			if self.config.getint('options', 'pump_enabled') == 1:
 					if pump_enabled == 0 and boiler_enabled == 1:
-						self.l.debug("Enabling pump")
+						self.l.info("Enabling pump")
 						self.turn_relay(pump_relay_name, 1)
+						pump_enabled = 1
 					elif pump_enabled ==1 and boiler_enabled ==0:
 						self.turn_relay(pump_relay_name, 0)
-						self.l.debug("Disabling pump")		
+						self.l.info("Disabling pump")	
+						pump_enabled = 0
+					
 			time.sleep(self.config.getint('engine', 'loop_interval'))
 
 

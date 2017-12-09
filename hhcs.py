@@ -69,7 +69,7 @@ if __name__ == '__main__':
     root.putChild("style", static.File("./transdmin_light/style"))
  #   root.putChild("", web.Dispatcher())
     #root.processors = {'.html': web.Dispatcher()}
-    restServer = server.Site(restapi.Dispatcher(disp))
+    restServer = server.Site(restapi.Dispatcher(l,config,c))
     webServer = server.Site(root)
     reactor.listenTCP(3001, restServer)
     reactor.listenTCP(81, webServer)

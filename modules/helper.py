@@ -1,3 +1,6 @@
+class SensorErr(Exception):
+    pass
+
 class Helper():
 	def __init__(self, log, config, cache):
 		self.log = log
@@ -69,7 +72,15 @@ class Helper():
 		for HWsensor in HWsensors:
 			itemsDict = {}
 			itemsDict["name"] = ""
-			itemsDict["current_temp"] = float(ow.read(HWsensor + 'temperature').strip())
+			sensor_temp = 0
+			try:
+				sensor_temp = float(ow.read(HWsensor + 'EDS0067/temperature').strip())
+			except SensorErr:
+				try: 
+					sensor_temp = float(ow.read(HWsensor + 'temperature').strip())
+				except SensorErr:
+					pass
+			itemsDict["current_temp"] = sensor_temp
 			itemsDict["address"] = ""
 			itemsDict["sensor_id"] = ""
 			HWsensorslist[HWsensor] = itemsDict
@@ -82,7 +93,17 @@ class Helper():
 					for item in items:
 						itemsDict[item[0]] = item[1]
 					if itemsDict["address"] == HWsensor:
-						itemsDict["current_temp"] = float(ow.read(HWsensor + 'temperature').strip())
+						try:
+							sensor_temp = float(ow.read(HWsensor + 'EDS0067/temperature').strip())
+						except SensorErr:
+							pass
+
+						try: 
+							sensor_temp = float(ow.read(HWsensor + 'temperature').strip())
+						except SensorErr:
+							pass
+				
+						itemsDict["current_temp"] = sensor_temp
 						itemsDict["sensor_id"] = sensorID
 						print "=================== FOUND SENSOR:  " + HWsensor	
 						HWsensorslist[HWsensor] = itemsDict
