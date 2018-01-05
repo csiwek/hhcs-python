@@ -33,7 +33,6 @@ from datetime import datetime
 import random
 import sys
 
-
 class handler():
 	def __init__(self,l,c, config):
 		self.cache=c
@@ -94,6 +93,7 @@ class handler():
 			return
 
 		# Get rendered font width and height.
+		position_top, position_right = position
 		draw = ImageDraw.Draw(image)
 		width, height = draw.textsize(text, font=font)
 		# Create a new image with transparent background to store the text.
@@ -104,10 +104,17 @@ class handler():
 		# Rotate the text image.
 		rotated = textimage.rotate(angle, expand=1)
 		# Paste the text into the image, using it as a mask for transparency.
-		image.paste(rotated, position, rotated)
+		image.paste(rotated, (position_top, 320- position_right - width), rotated)
+		del draw
 
-
-	
+	def clear(self, color=(0,0,0)):
+		"""Clear the image buffer to the specified RGB color (default black)."""
+		width, height = self.disp.buffer.size
+		#self.buffer.putdata([color]_(width_height))
+		draw = ImageDraw.Draw(self.disp.buffer)
+		draw.rectangle([(0,0),(width,height)], fill=color)
+		del draw
+			
 
 # Write two lines of white text on the buffer, rotated 90 degrees counter clockwise.
 	def generate(self):
@@ -125,15 +132,31 @@ class handler():
 			self.draw_rotated_text(self.disp.buffer, tnow , (2, 10), 90, self.font, fill=(255,0,0))
 			self.draw.line((20, 1, 20, 320), fill=(255,255,255))
 			n = 0
-			ZoneLine = "Zone %d  %.2f %sC" % ((n), self.cache.Sensor0_temp, u'\u00b0')
-			self.draw_rotated_text(self.disp.buffer, ZoneLine, (30, 200), 90, self.font, fill=(255,255,255))
-			while n < 8:
-				ZoneLine = "Zone %d  %.2f %sC" % ((n+1), random.uniform(19.0,25.0), u'\u00b0')
-				#self.draw_rotated_text(self.disp.buffer, self.textToDisp , (100, 120), 90, self.font, fill=(255,255,0))
-				self.draw_rotated_text(self.disp.buffer, ZoneLine, (45+(n*20), 200), 90, self.font, fill=(255,255,255))
-				n = n+1
+			ZoneLine = "Zone %d  %s %sC" % ((n), self.cache.Sensor0_temp, u'\u00b0')
+			zoneslist = {}
+			for section in self.config.sections():
+				if section[:5] == "zone_":
+					self.l.debug("found zone %s " % section[5:])
+					itemsDict = {}
+					itemsDict["current_temperature"] = self.cache.getValue(section[5:] + "_zone_current_temp") 	
+					itemsDict["current_direction"] = self.cache.getValue(section[5:] + "_zone_direction")
+					items = self.config.items(section)
+					for item in items:
+						itemsDict[item[0]] = item[1]
+					ZoneLine = "'%s'" % (itemsDict["name"]) 	
+					TempLine = " : %.2f  %sC" % (itemsDict["current_temperature"],  u'\u00b0') 	
+					self.draw_rotated_text(self.disp.buffer, ZoneLine, (45+(n*20), 10) , 90, self.font, fill=(255,255,255))
+					self.draw_rotated_text(self.disp.buffer, TempLine, (45+(n*20), 120) , 90, self.font, fill=(255,255,255))
+					self.draw_rotated_text(self.disp.buffer, itemsDict["current_direction"], (45+(n*20), 200) , 90, self.font, fill=(255,255,255))
+					n = n +1
+			
+		#	while n < 8:
+		#		ZoneLine = "Zone %d  %.2f %sC" % ((n+1), random.uniform(19.0,25.0), u'\u00b0')
+		#		#self.draw_rotated_text(self.disp.buffer, self.textToDisp , (100, 120), 90, self.font, fill=(255,255,0))
+		#		self.draw_rotated_text(self.disp.buffer, ZoneLine, (45+(n*20), 200), 90, self.font, fill=(255,255,255))
+		#		n = n+1
 			self.disp.display()
-			self.disp.clear()
+			self.clear()
 			self.tbef = tnow
 		self.A=self.A+1
 		return 0
