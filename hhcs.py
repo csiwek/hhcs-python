@@ -21,6 +21,7 @@ import engine
 import cache
 import logger
 import ConfigParser
+import buttons
 
 
 
@@ -35,6 +36,7 @@ config.read('hhcs.cfg')
 
 disp = display.handler(l,c,config) 
 engine = engine.Engine(l,c,config)
+inp = buttons.Buttons(l,c,config)
 
 def signal_handler(signal, frame):
     global disp
@@ -58,8 +60,8 @@ if __name__ == '__main__':
     
 #    disp = display.handler(c) 
     lc = task.LoopingCall(disp.generate)
-    lc.start(0.2)
-    
+    lc.start(0.1)
+ 
     root = web.Dispatcher(l, config, c)
     root.putChild("css", static.File("./template/css"))
     root.putChild("js", static.File("./template/js"))
@@ -72,6 +74,6 @@ if __name__ == '__main__':
     restServer = server.Site(restapi.Dispatcher(l,config,c))
     webServer = server.Site(root)
     reactor.listenTCP(3001, restServer)
-    reactor.listenTCP(81, webServer)
+    reactor.listenTCP(80, webServer)
     reactor.callInThread(engine.loop)
     reactor.run()

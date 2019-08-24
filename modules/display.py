@@ -24,7 +24,8 @@ import ImageDraw
 import ImageFont
 
 import Adafruit_ILI9341 as TFT
-import Adafruit_GPIO as GPIO
+#import Adafruit_GPIO as GPIO
+import Adafruit_BBIO.GPIO as GPIO
 import Adafruit_GPIO.SPI as SPI
 import time
 import psutil
@@ -50,7 +51,6 @@ class handler():
 		RST = 'P9_12'
 		SPI_PORT = 1
 		SPI_DEVICE = 0
-
 		# Create TFT LCD display class.
 		try:
 			self.disp = TFT.ILI9341(DC, rst=RST, spi=SPI.SpiDev(SPI_PORT, SPI_DEVICE, max_speed_hz=64000000))
@@ -106,6 +106,10 @@ class handler():
 		# Paste the text into the image, using it as a mask for transparency.
 		image.paste(rotated, (position_top, 320- position_right - width), rotated)
 		del draw
+		del textdraw
+		del rotated
+		del textimage
+		del image
 
 	def clear(self, color=(0,0,0)):
 		"""Clear the image buffer to the specified RGB color (default black)."""
@@ -159,6 +163,7 @@ class handler():
 			self.clear()
 			self.tbef = tnow
 		self.A=self.A+1
+
 		return 0
 
 	def __del__(self):
