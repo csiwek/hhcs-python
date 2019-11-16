@@ -5,8 +5,8 @@ class Buttons():
 		self.cache=c
 		self.l=l
 		self.config = config
-		GPIO.setup(self.config.get('gpio', 'button_ok'), GPIO.IN, pull_up_down=GPIO.PUD_UP)
-		GPIO.add_event_detect(self.config.get('gpio', 'button_ok'), GPIO.FALLING, callback=self.OK_Button)
+		#GPIO.setup(self.config.get('gpio', 'button_ok'), GPIO.IN, pull_up_down=GPIO.PUD_UP)
+		#GPIO.add_event_detect(self.config.get('gpio', 'button_ok'), GPIO.FALLING, callback=self.OK_Button)
 
 
 	def OK_Button(self, but):
