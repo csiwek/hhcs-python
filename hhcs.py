@@ -2,6 +2,7 @@
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 import sys, os, string
 sys.path.append('/home/hhcs/modules/')
+sys.path.append('/home/csiwek/hhcs-python/modules/')
 from twisted.internet import reactor
 from twisted.python import threadable, log as twlog
 from twisted.web import server, resource, static
@@ -31,7 +32,7 @@ l = log.get_logger("hhcs")
 l.info("Starting")
 c = cache.cache(l)
 config = ConfigParser.RawConfigParser()
-config.read('/home/hhcs/hhcs.cfg')
+config.read('/home/csiwek/hhcs-python/hhcs.cfg')
 
 disp = display.handler(l,c,config) 
 engine = engine.Engine(l,c,config)
@@ -61,17 +62,17 @@ if __name__ == '__main__':
     lc.start(0.1)
     
     root = web.Dispatcher(l, config, c)
-    root.putChild("css", static.File("/home/hhcs/template/css"))
-    root.putChild("js", static.File("/home/hhcs/template/js"))
-    root.putChild("img", static.File("/home/hhcs/template/img"))
-    root.putChild("font", static.File("/home/hhcs/template/font"))
-    root.putChild("images", static.File("/home/hhcs/transdmin_light/images"))
-    root.putChild("style", static.File("/home/hhcs/transdmin_light/style"))
+    root.putChild("css", static.File(os.path.dirname(__file__) + "/template/css"))
+    root.putChild("js", static.File(os.path.dirname(__file__) + "/template/js"))
+    root.putChild("img", static.File(os.path.dirname(__file__) + "/template/img"))
+    root.putChild("font", static.File(os.path.dirname(__file__) + "/template/font"))
+    root.putChild("images", static.File(os.path.dirname(__file__) + "/transdmin_light/images"))
+    root.putChild("style", static.File(os.path.dirname(__file__) +"/transdmin_light/style"))
  #   root.putChild("", web.Dispatcher())
     #root.processors = {'.html': web.Dispatcher()}
     restServer = server.Site(restapi.Dispatcher(l,config,c))
     webServer = server.Site(root)
     reactor.listenTCP(3001, restServer)
-    reactor.listenTCP(80, webServer)
+    reactor.listenTCP(config.getint('web', 'port'), webServer)
     reactor.callInThread(engine.loop)
     reactor.run()

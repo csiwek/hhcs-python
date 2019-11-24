@@ -7,9 +7,12 @@ import time
 import sys, os, string
 import pprint
 import helper
+from datetime import datetime
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/modules/')
 import pyownet.protocol
+
+
 class Engine():
 
 	def __init__ (self,l,c, config):	
@@ -17,15 +20,15 @@ class Engine():
 		self.c = c
 		self.config = config
 		self.hlp = helper.Helper(l,config,c)
-		GPIO.setup(self.config.get('gpio', 'heartbeat_led'), GPIO.OUT)
-		GPIO.setup(self.config.get('gpio', 'relay_1'), GPIO.OUT)
-		GPIO.setup(self.config.get('gpio', 'relay_2'), GPIO.OUT)
-		GPIO.setup(self.config.get('gpio', 'relay_3'), GPIO.OUT)
-		GPIO.setup(self.config.get('gpio', 'relay_4'), GPIO.OUT)
-		GPIO.setup(self.config.get('gpio', 'relay_5'), GPIO.OUT)
-		GPIO.setup(self.config.get('gpio', 'relay_6'), GPIO.OUT)
-		GPIO.setup(self.config.get('gpio', 'relay_7'), GPIO.OUT)
-		GPIO.setup(self.config.get('gpio', 'relay_8'), GPIO.OUT)
+		self.gpio_setup(self.config.get('gpio', 'heartbeat_led'), GPIO.OUT)
+		self.gpio_setup(self.config.get('gpio', 'relay_1'), GPIO.OUT)
+		self.gpio_setup(self.config.get('gpio', 'relay_2'), GPIO.OUT)
+		self.gpio_setup(self.config.get('gpio', 'relay_3'), GPIO.OUT)
+		self.gpio_setup(self.config.get('gpio', 'relay_4'), GPIO.OUT)
+		self.gpio_setup(self.config.get('gpio', 'relay_5'), GPIO.OUT)
+		self.gpio_setup(self.config.get('gpio', 'relay_6'), GPIO.OUT)
+		self.gpio_setup(self.config.get('gpio', 'relay_7'), GPIO.OUT)
+		self.gpio_setup(self.config.get('gpio', 'relay_8'), GPIO.OUT)
 		self.ow = pyownet.protocol.proxy(host="127.0.0.1", port=4304)
 		for section in config.sections():
 			if section[:5] == "zone_":
@@ -38,8 +41,19 @@ class Engine():
 		l.info("Initialized Engine")
 		self.test_relays()
 	
+	def gpio_setup(self, pin, direction):
+		if int(self.config.get('gpio', 'enabled')) == 1:
+			self.gpio_setup(pin, direction)
+
+	def gpio_output(self, pin, state):
+		if int(self.config.get('gpio', 'enabled')) == 1:
+			self.gpio_output(pin, state)
+
+
+
 #	PWM.start("P8_16", 50)
 	def loop(self):
+		timeold=""
 		boiler_enabled = 0
 		boiler_relay_name = self.config.get('options', 'boiler_relay')
 		pump_enabled = 0
@@ -120,7 +134,21 @@ class Engine():
 						self.turn_relay(pump_relay_name, 0)
 						self.l.info("Disabling pump")	
 						pump_enabled = 0
-					
+				
+			# towel heater
+			now = datetime.now()
+			timenow = now.strftime("%H:%M")
+			if timenow != timeold:
+				towel_times = self.config.get( "towel_times", "times").strip().split(',')
+				for item in towel_times:
+					if len(item) > 0:
+						time_list = item.split(';')
+						if time_list[0] == timenow:
+							if time_list[1] == 'on':
+								self.turn_relay('relay_8', 1)
+							elif time_list[1] == 'off':
+								self.turn_relay('relay_8', 0)
+			timeold = timenow	
 			time.sleep(self.config.getint('engine', 'loop_interval'))
 
 
@@ -131,10 +159,10 @@ class Engine():
 		gpio_state = self.c.getValue(self.config.get('gpio',relay) + "_gpio_state")
 		if state!=relay_state:
 			if state == 0:
-				GPIO.output(self.config.get('gpio', relay), GPIO.LOW)
+				self.gpio_output(self.config.get('gpio', relay), GPIO.LOW)
 				self.l.info("Disabling relay: "  + relay)
 			elif state == 1:
-				GPIO.output(self.config.get('gpio', relay), GPIO.HIGH)
+				self.gpio_output(self.config.get('gpio', relay), GPIO.HIGH)
 				self.l.info("Enabling relay: "  + relay)
 			self.c.setValue(relay + "_relay_state", state)		
 			self.c.setValue(relay + "_gpio_state", state)		
@@ -144,51 +172,51 @@ class Engine():
 
 	
 	def test_relays(self):
-		GPIO.output(self.config.get('gpio', 'heartbeat_led'), GPIO.HIGH)
+		self.gpio_output(self.config.get('gpio', 'heartbeat_led'), GPIO.HIGH)
 		time.sleep(0.01)
-		GPIO.output(self.config.get('gpio', 'heartbeat_led'), GPIO.LOW)
-		GPIO.output(self.config.get('gpio', 'relay_1'), GPIO.HIGH)
+		self.gpio_output(self.config.get('gpio', 'heartbeat_led'), GPIO.LOW)
+		self.gpio_output(self.config.get('gpio', 'relay_1'), GPIO.HIGH)
 		time.sleep(0.05)
-		GPIO.output(self.config.get('gpio', 'relay_2'), GPIO.HIGH)
+		self.gpio_output(self.config.get('gpio', 'relay_2'), GPIO.HIGH)
 		time.sleep(0.05)
-		GPIO.output(self.config.get('gpio', 'relay_3'), GPIO.HIGH)
+		self.gpio_output(self.config.get('gpio', 'relay_3'), GPIO.HIGH)
 		time.sleep(0.05)
-		GPIO.output(self.config.get('gpio', 'relay_4'), GPIO.HIGH)
+		self.gpio_output(self.config.get('gpio', 'relay_4'), GPIO.HIGH)
 		time.sleep(0.05)
-		GPIO.output(self.config.get('gpio', 'relay_5'), GPIO.HIGH)
+		self.gpio_output(self.config.get('gpio', 'relay_5'), GPIO.HIGH)
 		time.sleep(0.05)
-		GPIO.output(self.config.get('gpio', 'relay_6'), GPIO.HIGH)
+		self.gpio_output(self.config.get('gpio', 'relay_6'), GPIO.HIGH)
 		time.sleep(0.05)
-		GPIO.output(self.config.get('gpio', 'relay_7'), GPIO.HIGH)
+		self.gpio_output(self.config.get('gpio', 'relay_7'), GPIO.HIGH)
 		time.sleep(0.05)
-		GPIO.output(self.config.get('gpio', 'relay_8'), GPIO.HIGH)
+		self.gpio_output(self.config.get('gpio', 'relay_8'), GPIO.HIGH)
 		time.sleep(0.05)
-		GPIO.output(self.config.get('gpio', 'relay_1'), GPIO.LOW)
+		self.gpio_output(self.config.get('gpio', 'relay_1'), GPIO.LOW)
 		time.sleep(0.05)
-		GPIO.output(self.config.get('gpio', 'relay_2'), GPIO.LOW)
+		self.gpio_output(self.config.get('gpio', 'relay_2'), GPIO.LOW)
 		time.sleep(0.05)
-		GPIO.output(self.config.get('gpio', 'relay_3'), GPIO.LOW)
+		self.gpio_output(self.config.get('gpio', 'relay_3'), GPIO.LOW)
 		time.sleep(0.05)
-		GPIO.output(self.config.get('gpio', 'relay_4'), GPIO.LOW)
+		self.gpio_output(self.config.get('gpio', 'relay_4'), GPIO.LOW)
 		time.sleep(0.05)
-		GPIO.output(self.config.get('gpio', 'relay_5'), GPIO.LOW)
+		self.gpio_output(self.config.get('gpio', 'relay_5'), GPIO.LOW)
 		time.sleep(0.05)
-		GPIO.output(self.config.get('gpio', 'relay_6'), GPIO.LOW)
+		self.gpio_output(self.config.get('gpio', 'relay_6'), GPIO.LOW)
 		time.sleep(0.05)
-		GPIO.output(self.config.get('gpio', 'relay_7'), GPIO.LOW)
+		self.gpio_output(self.config.get('gpio', 'relay_7'), GPIO.LOW)
 		time.sleep(0.05)
-		GPIO.output(self.config.get('gpio', 'relay_8'), GPIO.LOW)
+		self.gpio_output(self.config.get('gpio', 'relay_8'), GPIO.LOW)
 		time.sleep(0.05)
 
 	def __del__(self):
 		self.l.info("Cleaning up Engine")
-		GPIO.output(self.config.get('gpio', 'heartbeat_led'), GPIO.LOW)
-		GPIO.output(self.config.get('gpio', 'relay_1'), GPIO.LOW)
-		GPIO.output(self.config.get('gpio', 'relay_2'), GPIO.LOW)
-		GPIO.output(self.config.get('gpio', 'relay_3'), GPIO.LOW)
-		GPIO.output(self.config.get('gpio', 'relay_4'), GPIO.LOW)
-		GPIO.output(self.config.get('gpio', 'relay_5'), GPIO.LOW)
-		GPIO.output(self.config.get('gpio', 'relay_6'), GPIO.LOW)
-		GPIO.output(self.config.get('gpio', 'relay_7'), GPIO.LOW)
-		GPIO.output(self.config.get('gpio', 'relay_8'), GPIO.LOW)
+		self.gpio_output(self.config.get('gpio', 'heartbeat_led'), GPIO.LOW)
+		self.gpio_output(self.config.get('gpio', 'relay_1'), GPIO.LOW)
+		self.gpio_output(self.config.get('gpio', 'relay_2'), GPIO.LOW)
+		self.gpio_output(self.config.get('gpio', 'relay_3'), GPIO.LOW)
+		self.gpio_output(self.config.get('gpio', 'relay_4'), GPIO.LOW)
+		self.gpio_output(self.config.get('gpio', 'relay_5'), GPIO.LOW)
+		self.gpio_output(self.config.get('gpio', 'relay_6'), GPIO.LOW)
+		self.gpio_output(self.config.get('gpio', 'relay_7'), GPIO.LOW)
+		self.gpio_output(self.config.get('gpio', 'relay_8'), GPIO.LOW)
 

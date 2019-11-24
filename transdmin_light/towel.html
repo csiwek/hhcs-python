@@ -22,9 +22,9 @@
         <!-- You can name the links with lowercase, they will be transformed to uppercase by CSS, we prefered to name them with uppercase to have the same effect with disabled stylesheet -->
         <ul id="mainNav">
         	<li><a href="/zones">ZONES</a></li> <!-- Use the "active" class for the active menu item  -->
-        	<li><a href="/towel">TOWEL HEATER</a></li>
+        	<li><a href="/towel" class="active">TOWEL HEATER</a></li>
         	<li><a href="/relays">RELAYS</a></li>
-        	<li><a href="/sensors" class="active">SENSORS</a></li>
+        	<li><a href="/sensors">SENSORS</a></li>
         	<li><a href="/options">OPTIONS</a></li>
         	<li class="logout"><a href="/login">LOGOUT</a></li>
         </ul>
@@ -34,30 +34,24 @@
 			<div id="container">
         		<div id="sidebar">
                 	<ul class="sideNav">
-                    	<li><a href="#" class="active">All Sensors</a></li>
-                    	<li><a href="/sensors/add">Add new sensor</a></li>
+                    	<li><a href="/towel" class="active">All times</a></li>
+                    	<li><a href="/towel/add">Add Towel Rail time</a></li>
                     </ul>
                     <!-- // .sideNav -->
                 </div>    
                 <!-- // #sidebar -->
                 
                 <!-- h2 stays for breadcrumbs -->
-                <h2><a href="#">Sensors</a> &raquo; <a href="#" class="active">List Sensors</a></h2>
+                <h2><a href="#">Towel Times</a> &raquo; <a href="#" class="active">List Towel times</a></h2>
                 
                 <div id="main">
 
-					<h3>Zones</h3>
+					<h3>Towel Rail times</h3>
 			<form class="jNice">
                     	<table cellpadding="0" cellspacing="0">
-				<tr><td>Sensor Name</td><td>Address</td><td>Current Temp</td><td class="action">Action</td></tr>
-			{% for sensorname, sensorvalues in sensors.iteritems() %}
-				<tr class="odd"><td>{{sensorvalues['name']}}</td><td>{{sensorname}}</td><td>{{sensorvalues['current_temp']}}</td><td class="action">
-				{% if sensorvalues['name'] == "" %}
-					<a href="/sensors/assign/{{ url_escape(sensorname)}}" class="edit">Assign Name</a>
-				{% else %}
-					<a href="/sensors/delete/{{sensorvalues['sensor_id']}}" class="delete" onclick="return confirm('Are you sure you want to remove this sensor?');">Delete</a>				
-				{% end %}
-				</td></tr>
+				<tr><td>Time</td><td>On/Off</td><td class="action">Action</td></tr>
+			{% for it in times %}
+				<t=r><td>{{it['time']}}</td><td> {{it['action']}}</td><td><a href="/towel/delete/{{it['time']}};{{it['action']}}" class="delete" onclick="return confirm('Are you sure you want to remove this time for Towel rail heater?');">Delete</a></td></tr>
 			{% end %}
 			</table>	
 			<p></p>

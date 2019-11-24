@@ -30,6 +30,10 @@ class Dispatcher(resource.Resource):
 		return ProcessIndex(name, self.log, self.config, self.cache)
 	elif request.path=="/zones" or request.path=="/zones/add":
 		return ProcessZones(name, self.log, self.config, self.cache)
+	elif request.path=="/towel" or request.path=="/towel/add":
+		return ProcessTowel(name, self.log, self.config, self.cache)
+	elif re.match(r"^/towel/delete/(.*)$", request.path, flags=0):
+		return ProcessTowel(name, self.log, self.config, self.cache)
 	elif request.path=="/sensors":
 		return ProcessSensors(name, self.log, self.config, self.cache)
 	elif re.match(r"^/sensors/assign/(.*)$", request.path, flags=0):
@@ -92,7 +96,7 @@ class ProcessLogin(resource.Resource):
 	#request.getSession().expire()
 	self.session = SessionManager(request, self.log)
 	self.session.expireSession()
-	loader = template.Loader("./" + self.config.get('web', 'template_name'))
+	loader = template.Loader(os.path.dirname(__file__) + "/../" + self.config.get('web', 'template_name'))
 	return loader.load("login.html").generate()
 	
     def render_POST(self, request):
@@ -499,6 +503,74 @@ class ProcessOptions(resource.Resource):
 		with open('hhcs.cfg', 'wb') as configfile:
 			self.config.write(configfile)	
 	request.redirect("/zones")
+	request.finish()
+	return server.NOT_DONE_YET
+
+class ProcessTowel(resource.Resource):
+    isLeaf=True
+    def __init__(self, name, log, config, cache):
+       	resource.Resource.__init__(self)
+	self.name = name
+	self.log = log
+	self.config = config
+	self.cache = cache
+
+    def render_GET(self, request):
+	self.log.info("Serving: %s " % self.name)
+	self.log.info("reuest: %s " % pprint.pformat(request.getClientIP()))
+	loader = template.Loader("./" + self.config.get('web', 'template_name'))
+	m = re.match(r"^/towel/delete/(.*)$", request.path, flags=0)
+	if m:
+		time = m.group(1)
+		oldtimes = self.config.get( "towel_times", "times").strip().split(',')
+		newtimes = ""
+		for item in oldtimes:
+			if item != time:
+				newtimes = item  + ","
+		if len(newtimes) > 1:
+			newtimes = newtimes[:-1]	
+		self.config.set( "towel_times", "times", newtimes)
+		with open('hhcs.cfg', 'wb') as configfile:
+			self.config.write(configfile)	
+		request.redirect("/towel")
+		request.finish()
+		return server.NOT_DONE_YET
+
+	if request.path=="/towel/add":
+		return loader.load("towel_add.html").generate()
+		
+	towel_times = self.config.get( "towel_times", "times").split(',')
+	TimesList = []
+	for item in towel_times:
+		time_list = item.split(';')
+		if len(time_list) == 2:
+			self.log.info("time : " + time_list[0] + "  state: " + time_list[1])
+			timeInfo = {}
+			timeInfo["time"]  = time_list[0]
+			timeInfo["action"]  = time_list[1]
+			TimesList.append(timeInfo)
+	return loader.load("towel.html").generate(
+				times=TimesList
+				)	
+    
+    def render_POST(self, request):
+	self.session = SessionManager(request, self.log)
+	self.log.info("Serving POST: %s " % self.name)
+	
+	#Session.sessionTimeout 	= 3600
+
+	if request.path == "/towel/add":
+		time = cgi.escape(request.args["hour"][0]) + ":" + cgi.escape(request.args["min"][0]) + ";" + cgi.escape(request.args["action"][0])
+		oldtimes = self.config.get( "towel_times", "times").strip()
+		if len(oldtimes) > 0:
+			newtimes = oldtimes + ',' + time
+		else:
+			newtimes = time	
+		self.config.set( "towel_times", "times", newtimes)
+		with open('hhcs.cfg', 'wb') as configfile:
+			self.config.write(configfile)	
+
+	request.redirect("/towel")
 	request.finish()
 	return server.NOT_DONE_YET
 

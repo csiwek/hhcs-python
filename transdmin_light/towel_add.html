@@ -15,6 +15,8 @@
 </head>
 
 <body>
+
+
 	<div id="wrapper">
     	<!-- h1 tag stays for the logo, you can use the a tag for linking the index page -->
     	<h1><a href="#"><span>HHCS Control Panel</span></a></h1>
@@ -22,9 +24,9 @@
         <!-- You can name the links with lowercase, they will be transformed to uppercase by CSS, we prefered to name them with uppercase to have the same effect with disabled stylesheet -->
         <ul id="mainNav">
         	<li><a href="/zones">ZONES</a></li> <!-- Use the "active" class for the active menu item  -->
-        	<li><a href="/towel">TOWEL HEATER</a></li>
+        	<li><a href="/towel" class="active">TOWEL HEATER</a></li>
         	<li><a href="/relays">RELAYS</a></li>
-        	<li><a href="/sensors" class="active">SENSORS</a></li>
+        	<li><a href="/sensors">SENSORS</a></li>
         	<li><a href="/options">OPTIONS</a></li>
         	<li class="logout"><a href="/login">LOGOUT</a></li>
         </ul>
@@ -34,34 +36,66 @@
 			<div id="container">
         		<div id="sidebar">
                 	<ul class="sideNav">
-                    	<li><a href="#" class="active">All Sensors</a></li>
-                    	<li><a href="/sensors/add">Add new sensor</a></li>
+                    	<li><a href="/towel">All Towel Times</a></li>
+                    	<li><a href="/towel/add" class="active">Add new Towel Time</a></li>
                     </ul>
                     <!-- // .sideNav -->
                 </div>    
                 <!-- // #sidebar -->
                 
                 <!-- h2 stays for breadcrumbs -->
-                <h2><a href="#">Sensors</a> &raquo; <a href="#" class="active">List Sensors</a></h2>
+                <h2><a href="#">Towel</a> &raquo; <a href="#" class="active">Add New time for Towel heater</a></h2>
                 
                 <div id="main">
+                	<form method="POST" action="/towel/add" class="jNice">
+					<h3>New Towel Time</h3>
+                    	<fieldset>
+                        <p><label>Hour:</label>
+				<select name="hour" class="text-small">
+					<option value="00">00</option>
+					<option value="01">01</option>
+					<option value="02">02</option>
+					<option value="03">03</option>
+					<option value="04">04</option>
+					<option value="05">05</option>
+					<option value="06">06</option>
+					<option value="07">07</option>
+					<option value="08">08</option>
+					<option value="09">09</option>
+					<option value="10">10</option>
+					<option value="11">11</option>
+					<option value="12">12</option>
+					<option value="13">13</option>
+					<option value="14">14</option>
+					<option value="15">15</option>
+					<option value="16">16</option>
+					<option value="17">17</option>
+					<option value="18">18</option>
+					<option value="19">19</option>
+					<option value="20">20</option>
+					<option value="21">21</option>
+					<option value="22">22</option>
+					<option value="23">23</option>
+				</select>
+			</p>
+                        <p><label>Minute:</label>
+				<select name="min">
+					<option value="00">00</option>
+					<option value="15">15</option>
+					<option value="30">30</option>
+					<option value="45">45</option>
+				</select>
+			</p>
+                        <p><label>On / Off:</label>
 
-					<h3>Zones</h3>
-			<form class="jNice">
-                    	<table cellpadding="0" cellspacing="0">
-				<tr><td>Sensor Name</td><td>Address</td><td>Current Temp</td><td class="action">Action</td></tr>
-			{% for sensorname, sensorvalues in sensors.iteritems() %}
-				<tr class="odd"><td>{{sensorvalues['name']}}</td><td>{{sensorname}}</td><td>{{sensorvalues['current_temp']}}</td><td class="action">
-				{% if sensorvalues['name'] == "" %}
-					<a href="/sensors/assign/{{ url_escape(sensorname)}}" class="edit">Assign Name</a>
-				{% else %}
-					<a href="/sensors/delete/{{sensorvalues['sensor_id']}}" class="delete" onclick="return confirm('Are you sure you want to remove this sensor?');">Delete</a>				
-				{% end %}
-				</td></tr>
-			{% end %}
-			</table>	
-			<p></p>
-			</form>
+				<select name="action">
+					<option value="on">on</option>
+					<option value="off">off</option>
+				</select>
+			</p>
+                            <input type="submit" value="Add Time" />
+                        </fieldset>
+                    </form>
                 </div>
                 <!-- // #main -->
                 
