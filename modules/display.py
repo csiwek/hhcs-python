@@ -32,11 +32,10 @@ import psutil
 from datetime import time as TIME
 from datetime import datetime
 import random
-import sys
 import socket
 import fcntl
 import struct
-
+import sys, os
 
 class handler():
 	def __init__(self,l,c, config):
@@ -76,7 +75,7 @@ class handler():
 
 		# Load default font.
 		#font = ImageFont.load_default()
-		self.font = ImageFont.truetype('ArialBold.ttf', 14)
+		self.font = ImageFont.truetype(os.path.dirname(os.path.realpath(__file__)) + '/../ArialBold.ttf', 14)
 		# Alternatively load a TTF font.
 		# Some other nice fonts to try: http://www.dafont.com/bitmap.php
 		#font = ImageFont.truetype('Minecraftia.ttf', 16)

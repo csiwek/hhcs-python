@@ -32,7 +32,7 @@ l = log.get_logger("hhcs")
 l.info("Starting")
 c = cache.cache(l)
 config = ConfigParser.RawConfigParser()
-config.read('/home/csiwek/hhcs-python/hhcs.cfg')
+config.read(os.path.dirname(__file__) + '/hhcs.cfg')
 
 disp = display.handler(l,c,config) 
 engine = engine.Engine(l,c,config)
