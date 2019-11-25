@@ -33,6 +33,10 @@ from datetime import time as TIME
 from datetime import datetime
 import random
 import sys
+import socket
+import fcntl
+import struct
+
 
 class handler():
 	def __init__(self,l,c, config):
@@ -87,6 +91,12 @@ class handler():
 		l.info("Display Initialized")	
 		self.l = l
 		self.LoopRunning=1
+		try:
+			self.ip_address = self.get_ip_address("eth0")
+		except:
+			self.ip_address = False
+		self.l.info("IP address %s " % self.ip_address)		
+		
 
 	def draw_rotated_text(self, image, text, position, angle, font, fill=(255,255,255)):
 		if int(self.config.get('display', 'enabled')) != 1:
@@ -159,6 +169,10 @@ class handler():
 		#		#self.draw_rotated_text(self.disp.buffer, self.textToDisp , (100, 120), 90, self.font, fill=(255,255,0))
 		#		self.draw_rotated_text(self.disp.buffer, ZoneLine, (45+(n*20), 200), 90, self.font, fill=(255,255,255))
 		#		n = n+1
+			if not self.ip_address:
+				self.draw_rotated_text(self.disp.buffer, "No IP address! Connect HHCS to your router!", (200, 10) , 90, self.font, fill=(255,255,255))	
+			else:
+				self.draw_rotated_text(self.disp.buffer, "URL http://" + self.ip_address + "    User name:" + self.config.get('web', 'admin_username') + "  Password: " + self.config.get('web', 'admin_password') , (200, 10) , 90, self.font, fill=(255,255,255))	
 			self.disp.display()
 			self.clear()
 			self.tbef = tnow
@@ -179,4 +193,12 @@ class handler():
 		self.disp.clear()
 		self.draw_rotated_text(self.disp.buffer, 'Goodbye', (80, 20), 90,  ImageFont.truetype('DejaVuSans.ttf', 60), fill=(255,255,255))
 		self.disp.display()
-	
+
+	def get_ip_address(self, ifname):
+		s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		return socket.inet_ntoa(fcntl.ioctl(
+			s.fileno(),
+			0x8915,  # SIOCGIFADDR
+			 struct.pack('256s', ifname[:15])
+		)[20:24])
+
