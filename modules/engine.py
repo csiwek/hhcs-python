@@ -43,11 +43,11 @@ class Engine():
 	
 	def gpio_setup(self, pin, direction):
 		if int(self.config.get('gpio', 'enabled')) == 1:
-			self.gpio_setup(pin, direction)
+			GPIO.setup(pin, direction)
 
 	def gpio_output(self, pin, state):
 		if int(self.config.get('gpio', 'enabled')) == 1:
-			self.gpio_output(pin, state)
+			GPIO.output(pin, state)
 
 
 

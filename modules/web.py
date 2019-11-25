@@ -160,7 +160,7 @@ class ProcessZones(resource.Resource):
 	self.log.info("Serving: %s " % self.name)
 	self.log.info("reuest: %s " % pprint.pformat(request.getClientIP()))
 	hlp = helper.Helper(self.log, self.config, self.cache)
-	loader = template.Loader("./" + self.config.get('web', 'template_name'))
+	loader = template.Loader(os.path.dirname(__file__) + "/../" + self.config.get('web', 'template_name'))
 	if request.path=="/zones/add":
 		return loader.load("zone_add.html").generate(
 				sensors=hlp.getSensorsListAvailable(''),
@@ -234,7 +234,7 @@ class ProcessZoneEdit(resource.Resource):
 	hlp = helper.Helper(self.log, self.config, self.cache)
 	self.log.info("reuest: %s " % pprint.pformat(request.getClientIP()))
 	m = re.match(r"^/zones/edit/(.*)$", request.path, flags=0)
-	loader = template.Loader("./" + self.config.get('web', 'template_name'))
+	loader = template.Loader(os.path.dirname(__file__) + "/../" + self.config.get('web', 'template_name'))
 	if m:
 		zone_name= m.group(1)
 		section = "zone_" + zone_name
@@ -339,7 +339,7 @@ class ProcessIndex(resource.Resource):
 	self.session = SessionManager(request, self.log)
 	self.log.info("Serving: %s " % self.name)
 	self.log.info("reuest: %s " % pprint.pformat(request.getClientIP()))
-	loader = template.Loader("./" + self.config.get('web', 'template_name'))
+	loader = template.Loader(os.path.dirname(__file__) + "/../" + self.config.get('web', 'template_name'))
 	if self.name == "" or self.name=="index.html":
 		#session = request.getSession().uid
 		session = self.session.getSession()
@@ -388,8 +388,7 @@ class ProcessSensors(resource.Resource):
 
 	hlp = helper.Helper(self.log, self.config, self.cache)
 	HWsensorslist = hlp.getSensorsListUnassigned()
-
-	loader = template.Loader("./" + self.config.get('web', 'template_name'))
+	loader = template.Loader(os.path.dirname(__file__) + "/../" + self.config.get('web', 'template_name'))
 	m = re.match(r"^/sensors/assign/(.*)$", request.path, flags=0)
         if m:
 		return loader.load("sensor_add.html").generate(
@@ -463,7 +462,7 @@ class ProcessOptions(resource.Resource):
     def render_GET(self, request):
 	self.log.info("Serving: %s " % self.name)
 	self.log.info("reuest: %s " % pprint.pformat(request.getClientIP()))
-	loader = template.Loader("./" + self.config.get('web', 'template_name'))
+	loader = template.Loader(os.path.dirname(__file__) + "/../" + self.config.get('web', 'template_name'))
 	hlp = helper.Helper(self.log, self.config, self.cache)
 
 	options  = hlp.getOptions()
@@ -518,7 +517,7 @@ class ProcessTowel(resource.Resource):
     def render_GET(self, request):
 	self.log.info("Serving: %s " % self.name)
 	self.log.info("reuest: %s " % pprint.pformat(request.getClientIP()))
-	loader = template.Loader("./" + self.config.get('web', 'template_name'))
+	loader = template.Loader(os.path.dirname(__file__) + "/../" + self.config.get('web', 'template_name'))
 	m = re.match(r"^/towel/delete/(.*)$", request.path, flags=0)
 	if m:
 		time = m.group(1)
