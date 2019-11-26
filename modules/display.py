@@ -90,7 +90,8 @@ class handler():
 		self.l = l
 		self.LoopRunning=1
 		self.loopNumber = 0
-	
+		self.ip_address = False
+
 	def draw_rotated_text(self, image, text, position, angle, font, fill=(255,255,255)):
 		if int(self.config.get('display', 'enabled')) != 1:
 			return
@@ -127,7 +128,7 @@ class handler():
 	def generate(self):
 		if int(self.config.get('display', 'enabled')) != 1:
 			return
-		if self.loopNumber == 100:
+		if self.loopNumber == 5:
 			self.loopNumber = 0
 		t = datetime.now()
 		tnow = t.strftime("%H:%M:%S")
@@ -165,18 +166,18 @@ class handler():
 		#		self.draw_rotated_text(self.disp.buffer, ZoneLine, (45+(n*20), 200), 90, self.font, fill=(255,255,255))
 		#		n = n+1
 	
-			if self.loopNumber == 99:	
+			if self.loopNumber == 0:	
 				try:
-					ip_address = self.get_ip_address("eth0")
+					self.ip_address = self.get_ip_address("eth0")
 				except:
-					ip_address = False
+					seld.ip_address = False
 			
 
-				if not ip_address:
-					self.draw_rotated_text(self.disp.buffer, "No IP address! Connect HHCS to your router!", (200, 10) , 90, self.font, fill=(255,255,255))	
-				else:
-					self.draw_rotated_text(self.disp.buffer, "Web admin http://" + ip_address + "    User name:" + self.config.get('web', 'admin_username'))	
-					self.draw_rotated_text(self.disp.buffer, "User name:" + self.config.get('web', 'admin_username') + "  Password: " + self.config.get('web', 'admin_password') , (220, 10) , 90, self.font, fill=(255,255,255))	
+			if not self.ip_address:
+				self.draw_rotated_text(self.disp.buffer, "No IP address! Connect HHCS to your router!", (200, 10) , 90, self.font, fill=(255,255,255))	
+			else:
+				self.draw_rotated_text(self.disp.buffer, "Web admin http://" + self.ip_address , (200, 10) , 90, self.font, fill=(255,255,255))	
+				self.draw_rotated_text(self.disp.buffer, "User name:" + self.config.get('web', 'admin_username') + "  Password: " + self.config.get('web', 'admin_password') , (220, 10) , 90, self.font, fill=(255,255,255))	
 			self.disp.display()
 			self.clear()
 			self.tbef = tnow
