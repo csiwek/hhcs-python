@@ -83,20 +83,14 @@ class handler():
 		# Define a function to create rotated text.  Unfortunately PIL doesn't have good
 		# native support for rotated fonts, but this function can be used to make a 
 		# text image and rotate it so it's easy to paste in the buffer.
-		self.A = 1000
 		t = datetime.now()
 		self.tbef = t.strftime("%H:%M:%S")
 		self.textToDisp = ""
 		l.info("Display Initialized")	
 		self.l = l
 		self.LoopRunning=1
-		try:
-			self.ip_address = self.get_ip_address("eth0")
-		except:
-			self.ip_address = False
-		self.l.info("IP address %s " % self.ip_address)		
-		
-
+		self.loopNumber = 0
+	
 	def draw_rotated_text(self, image, text, position, angle, font, fill=(255,255,255)):
 		if int(self.config.get('display', 'enabled')) != 1:
 			return
@@ -133,6 +127,8 @@ class handler():
 	def generate(self):
 		if int(self.config.get('display', 'enabled')) != 1:
 			return
+		if self.loopNumber == 100:
+			self.loopNumber = 0
 		t = datetime.now()
 		tnow = t.strftime("%H:%M:%S")
 		if not self.cache.ContinueLoop:
@@ -168,15 +164,24 @@ class handler():
 		#		#self.draw_rotated_text(self.disp.buffer, self.textToDisp , (100, 120), 90, self.font, fill=(255,255,0))
 		#		self.draw_rotated_text(self.disp.buffer, ZoneLine, (45+(n*20), 200), 90, self.font, fill=(255,255,255))
 		#		n = n+1
-			if not self.ip_address:
-				self.draw_rotated_text(self.disp.buffer, "No IP address! Connect HHCS to your router!", (200, 10) , 90, self.font, fill=(255,255,255))	
-			else:
-				self.draw_rotated_text(self.disp.buffer, "URL http://" + self.ip_address + "    User name:" + self.config.get('web', 'admin_username') + "  Password: " + self.config.get('web', 'admin_password') , (200, 10) , 90, self.font, fill=(255,255,255))	
+	
+			if self.loopNumber == 99:	
+				try:
+					ip_address = self.get_ip_address("eth0")
+				except:
+					ip_address = False
+			
+
+				if not ip_address:
+					self.draw_rotated_text(self.disp.buffer, "No IP address! Connect HHCS to your router!", (200, 10) , 90, self.font, fill=(255,255,255))	
+				else:
+					self.draw_rotated_text(self.disp.buffer, "Web admin http://" + ip_address + "    User name:" + self.config.get('web', 'admin_username'))	
+					self.draw_rotated_text(self.disp.buffer, "User name:" + self.config.get('web', 'admin_username') + "  Password: " + self.config.get('web', 'admin_password') , (220, 10) , 90, self.font, fill=(255,255,255))	
 			self.disp.display()
 			self.clear()
 			self.tbef = tnow
-		self.A=self.A+1
 
+		self.loopNumber += 1
 		return 0
 
 	def __del__(self):
